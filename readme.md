@@ -12,7 +12,7 @@
 
 ```py
 dependencies {
-    implementation 'com.fz.network:Network:1.0.4'
+    implementation 'com.fz.network:Network:1.0.5'
 }
 ```
 
