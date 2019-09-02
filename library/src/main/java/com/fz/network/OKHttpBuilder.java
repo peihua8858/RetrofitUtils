@@ -18,6 +18,9 @@ import androidx.annotation.Nullable;
 import com.franmontiel.persistentcookiejar.PersistentCookieJar;
 import com.franmontiel.persistentcookiejar.cache.SetCookieCache;
 import com.franmontiel.persistentcookiejar.persistence.SharedPrefsCookiePersistor;
+import com.fz.network.cache.CacheManager;
+import com.fz.network.interceptor.TimeoutInterceptor;
+import com.fz.network.utils.NetworkUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -55,6 +58,7 @@ import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
+import okhttp3.internal.Util;
 import okhttp3.logging.HttpLoggingInterceptor;
 
 /**
@@ -86,6 +90,10 @@ public class OKHttpBuilder {
     private OKHttpBuilder(Context context, OkHttpClient.Builder builder) {
         this.context = context;
         this.builder = builder;
+        if (context != null) {
+            NetworkUtil.initNetwork(context);
+            CacheManager.initCacheManager(context);
+        }
     }
 
     public static OKHttpBuilder newBuilder() {
@@ -160,6 +168,31 @@ public class OKHttpBuilder {
     public OKHttpBuilder responseCacheInterceptor(Interceptor interceptor) {
         responseCacheInterceptor = interceptor;
         return this;
+    }
+
+    /**
+     * 设置自定义超时时间拦截器
+     * 如：{@link TimeoutInterceptor}
+     *
+     * @author dingpeihua
+     * @date 2019/8/30 17:10
+     * @version 1.0
+     */
+    public OKHttpBuilder timeoutInterceptor(Interceptor interceptor) {
+        interceptors.add(interceptor);
+        return this;
+    }
+
+    /**
+     * 设置自定义超时时间拦截器
+     * {@link TimeoutInterceptor}
+     *
+     * @author dingpeihua
+     * @date 2019/8/30 17:10
+     * @version 1.0
+     */
+    public OKHttpBuilder timeoutInterceptor() {
+        return timeoutInterceptor(new TimeoutInterceptor());
     }
 
     /**

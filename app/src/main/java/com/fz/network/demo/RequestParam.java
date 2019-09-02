@@ -76,9 +76,8 @@ public class RequestParam extends VpRequestParams {
     }
 
     public RequestParam(boolean hasData, boolean isReadCache) {
-        this();
+        super(isReadCache);
         this.hasData = hasData;
-        publicParams.put("isOpenCache", isReadCache ? "true" : "false");
     }
 
     public RequestParam(boolean isReadCache) {

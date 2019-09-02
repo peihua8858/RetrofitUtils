@@ -1,9 +1,12 @@
 package com.fz.network.demo;
 
+import com.fz.network.OKHttpBuilder;
 import com.fz.network.VpHttpClient;
+import com.fz.network.interceptor.TimeoutInterceptor;
 import com.fz.network.remote.BasicDataManager;
 
 import java.lang.reflect.Type;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -30,7 +33,12 @@ public class ApiManager extends BasicDataManager {
     @Override
     public void init(String baseUrl) {
         vpNewtWork = new VpHttpClient.Builder()
-                .addOkHttpClient(new OkHttpClient())
+                .addOkHttpClient(new OkHttpClient.Builder()
+                        .connectTimeout(30000, TimeUnit.MILLISECONDS)
+                        .readTimeout(30000, TimeUnit.MILLISECONDS)
+                        .writeTimeout(30000, TimeUnit.MILLISECONDS)
+                        .addInterceptor(new TimeoutInterceptor())
+                        .build())
                 .addBaseUrl(baseUrl)
                 .build();
     }
@@ -61,7 +69,12 @@ public class ApiManager extends BasicDataManager {
     public <T> T createApi(String host, Class<T> tClass) {
         return VpHttpClient.createService(vpNewtWork)
                 .setHost(host)
-                .setHttpClient(new OkHttpClient())
+                .setHttpClient(OKHttpBuilder.newBuilder()
+                        .connectTimeout(30000, TimeUnit.MILLISECONDS)
+                        .readTimeout(30000, TimeUnit.MILLISECONDS)
+                        .writeTimeout(30000, TimeUnit.MILLISECONDS)
+                        .timeoutInterceptor()
+                        .build())
                 .setMediaType(MediaType.parse("application/json; charset=utf-8"))
                 .setService(tClass)
                 .setTypeAdapter(HttpResponse.class, new HttpResponseAdapter())
@@ -77,6 +90,6 @@ public class ApiManager extends BasicDataManager {
     }
 
     public static AddressApi addressApi() {
-        return newInstance().createApi(URLConfigs.API_HOST_URL,AddressApi.class);
+        return newInstance().createApi(URLConfigs.API_HOST_URL, AddressApi.class);
     }
 }

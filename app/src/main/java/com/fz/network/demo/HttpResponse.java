@@ -1,5 +1,11 @@
 package com.fz.network.demo;
 
+import com.fz.network.cache.ICacheResponse;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
 /**
  * {"statusCode":200,"result":[],"msg":""}
  * {@link #result}可能为空，使用需要做非空判断
@@ -7,7 +13,7 @@ package com.fz.network.demo;
  *
  * @param <RESULT>
  */
-public final class HttpResponse<RESULT> {
+public final class HttpResponse<RESULT> extends ICacheResponse {
     private int statusCode;
     private String msg;
     private RESULT result;
@@ -43,5 +49,16 @@ public final class HttpResponse<RESULT> {
                 ", msg='" + msg + '\'' +
                 ", result=" + result +
                 '}';
+    }
+
+    @Override
+    protected boolean checkResult() {
+        if (result instanceof Collection) {
+            return ((Collection) result).size() > 0;
+        }
+        if (result instanceof Map) {
+            return ((Map) result).size() > 0;
+        }
+        return result != null;
     }
 }

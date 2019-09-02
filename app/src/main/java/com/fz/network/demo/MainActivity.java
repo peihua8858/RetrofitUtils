@@ -6,8 +6,11 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.fz.network.cache.CacheManager;
+import com.fz.network.utils.NetworkUtil;
 import com.socks.library.KLog;
 
+import java.io.File;
 import java.util.List;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -24,7 +27,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        String networkDiskCacheDir = new File(getExternalCacheDir(), "netWork").getAbsolutePath();
+        CacheManager.initCacheManager(this, networkDiskCacheDir);
+        NetworkUtil.initNetwork(this);
     }
 
     public void onClick(View view) {
@@ -41,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void requestAddressList() {
-        ApiManager.addressApi().getAddressLits(RequestBody.create(MediaType.parse("application/json; charset=utf-8"),"{\"data\":{\"coupon\":\"\",\"ab_cart_price\":0,\"auto_coupon\":1,\"no_login_select\":0,\"source\":\"0\",\"appsFlyerUID\":\"1560152354316-3505768219074339794\"},\"device_id\":\"e076fff9c03bea2a\",\"version\":\"4.7.0\",\"user_country_code\":\"HK\",\"token\":\"fe4fc9d8e340463169ed1ca4b3942899\",\"country_code\":\"HK\",\"user_country_id\":\"239\",\"lang\":\"zh-tw\",\"country_id\":\"239\"}"))
+        ApiManager.addressApi().getAddressLits(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), "{\"data\":{\"coupon\":\"\",\"ab_cart_price\":0,\"auto_coupon\":1,\"no_login_select\":0,\"source\":\"0\",\"appsFlyerUID\":\"1560152354316-3505768219074339794\"},\"device_id\":\"e076fff9c03bea2a\",\"version\":\"4.7.0\",\"user_country_code\":\"HK\",\"token\":\"fe4fc9d8e340463169ed1ca4b3942899\",\"country_code\":\"HK\",\"user_country_id\":\"239\",\"lang\":\"zh-tw\",\"country_id\":\"239\"}"))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new RSubscriber<String>(this) {
@@ -59,7 +64,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void requestCmsData() {
-        final RequestParam request = new RequestParam(false, false);
+        final RequestParam request = new RequestParam(false, true);
+        request.connectTimeoutMillis(1000);
+        request.readTimeoutMillis(1000);
+        request.writeTimeoutMillis(1000);
         buildParams(request);
         ApiManager.cmsServiceApi().getMenuList(request.createRequestBody())
                 .map(MainActivity.<HttpResponse<List<MenuBean>>>handleFunction())

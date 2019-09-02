@@ -93,6 +93,41 @@ public class VpRequestParams implements Serializable {
     }
 
     /**
+     * 创建一个是否支持读写缓存的构造函数；
+     *
+     * @param isReadCache 是否可读写缓存
+     * @author dingpeihua
+     * @date 2019/9/2 15:33
+     * @version 1.0
+     */
+    public VpRequestParams(boolean isReadCache) {
+        this("isOpenCache", isReadCache);
+    }
+
+    /**
+     * 开启读写缓存
+     *
+     * @author dingpeihua
+     * @date 2019/9/2 15:36
+     * @version 1.0
+     */
+    public final VpRequestParams openCache() {
+        put("isOpenCache", true);
+        return this;
+    }
+
+    /**
+     * 设置是否开启缓存
+     *
+     * @author dingpeihua
+     * @date 2019/9/2 16:35
+     * @version 1.0
+     */
+    public final void setOpenCache(boolean isReadCache) {
+        put("isOpenCache", isReadCache ? "true" : "false");
+    }
+
+    /**
      * Constructs a new RequestParams instance containing the key/value string params from the
      * specified map.
      *
@@ -140,6 +175,51 @@ public class VpRequestParams implements Serializable {
         }
     }
 
+    private long connectTimeout;
+    private long readTimeout;
+    private long writeTimeout;
+
+    /**
+     * 设置连接超时时间
+     * 注意：使用该参数时，如果有自定义{@link RequestBody} ，需要使用{@link TimeoutRequestBody}，并调用
+     * {@link TimeoutRequestBody#copyTimeout(TimeoutRequestBody)}
+     *
+     * @author dingpeihua
+     * @date 2019/8/30 16:35
+     * @version 1.0
+     */
+    public VpRequestParams connectTimeoutMillis(long timeMillis) {
+        connectTimeout = timeMillis;
+        return this;
+    }
+
+    /**
+     * 设置读取超时时间
+     * 注意：使用该参数时，如果有自定义{@link RequestBody} ，需要使用{@link TimeoutRequestBody}，并调用
+     * {@link TimeoutRequestBody#copyTimeout(TimeoutRequestBody)}
+     *
+     * @author dingpeihua
+     * @date 2019/8/30 16:35
+     * @version 1.0
+     */
+    public VpRequestParams readTimeoutMillis(long timeMillis) {
+        readTimeout = timeMillis;
+        return this;
+    }
+
+    /**
+     * 设置写超时时间
+     * 注意：使用该参数时，如果有自定义{@link RequestBody} ，需要使用{@link TimeoutRequestBody}，并调用
+     * {@link TimeoutRequestBody#copyTimeout(TimeoutRequestBody)}
+     *
+     * @author dingpeihua
+     * @date 2019/8/30 16:35
+     * @version 1.0
+     */
+    public VpRequestParams writeTimeoutMillis(long timeMillis) {
+        writeTimeout = timeMillis;
+        return this;
+    }
 
     /**
      * Adds a key/value string pair to the request.
@@ -410,7 +490,10 @@ public class VpRequestParams implements Serializable {
                 Gson mGson = params.mGson;
                 params.jsonParams = mGson.toJson(paramsMap);
             }
-            return RequestBody.create(JSON_TYPE, params.jsonParams);
+            return TimeoutRequestBody.create(JSON_TYPE, params.jsonParams)
+                    .connectTimeoutMillis(params.connectTimeout)
+                    .readTimeoutMillis(params.readTimeout)
+                    .writeTimeoutMillis(params.writeTimeout);
         } else {
             // Form表单
             FormBody.Builder builder = new FormBody.Builder();
@@ -436,10 +519,10 @@ public class VpRequestParams implements Serializable {
     public static MultipartBody createFileRequestBody(VpRequestParams params) {
         MultipartBody.Builder builder = new MultipartBody.Builder();
         //add 参数
-        for (ConcurrentHashMap.Entry<String, Object> entry : params.urlParams.entrySet()) {//增加url params
+        for (ConcurrentHashMap.Entry<String, Object> entry : params.urlParams.entrySet()) {
             builder.addFormDataPart(entry.getKey(), VpUrlUtil.toString(entry.getValue()));
         }
-        for (ConcurrentHashMap.Entry<String, FileWrapper> entry : params.fileParams.entrySet()) {//增加url file
+        for (ConcurrentHashMap.Entry<String, FileWrapper> entry : params.fileParams.entrySet()) {
             builder.addFormDataPart(entry.getKey(), entry.getValue().customFileName,
                     RequestBody.create(MediaType.parse(entry.getValue().contentType), entry.getValue().file));
         }
