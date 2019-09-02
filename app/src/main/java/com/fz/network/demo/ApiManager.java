@@ -2,6 +2,7 @@ package com.fz.network.demo;
 
 import com.fz.network.OKHttpBuilder;
 import com.fz.network.VpHttpClient;
+import com.fz.network.interceptor.NetLoggingInterceptor;
 import com.fz.network.interceptor.TimeoutInterceptor;
 import com.fz.network.remote.BasicDataManager;
 
@@ -74,6 +75,38 @@ public class ApiManager extends BasicDataManager {
                         .readTimeout(30000, TimeUnit.MILLISECONDS)
                         .writeTimeout(30000, TimeUnit.MILLISECONDS)
                         .timeoutInterceptor()
+                        .addInterceptor(new NetLoggingInterceptor(new NetLoggingInterceptor.OnDynamicParamCallback() {
+                            @Override
+                            public String getVersionName() {
+                                return null;
+                            }
+
+                            @Override
+                            public String getLogTag() {
+                                return null;
+                            }
+
+                            @Override
+                            public String getServiceIp() {
+                                return null;
+                            }
+                        }))
+                        .netLogInterceptor(new NetLoggingInterceptor.OnDynamicParamCallback() {
+                            @Override
+                            public String getVersionName() {
+                                return BuildConfig.VERSION_NAME;
+                            }
+
+                            @Override
+                            public String getLogTag() {
+                                return "Android-Demo";
+                            }
+
+                            @Override
+                            public String getServiceIp() {
+                                return null;
+                            }
+                        })
                         .build())
                 .setMediaType(MediaType.parse("application/json; charset=utf-8"))
                 .setService(tClass)

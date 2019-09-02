@@ -12,13 +12,13 @@ package com.fz.network;
 
 import android.content.Context;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.franmontiel.persistentcookiejar.PersistentCookieJar;
 import com.franmontiel.persistentcookiejar.cache.SetCookieCache;
 import com.franmontiel.persistentcookiejar.persistence.SharedPrefsCookiePersistor;
 import com.fz.network.cache.CacheManager;
+import com.fz.network.interceptor.NetLoggingInterceptor;
 import com.fz.network.interceptor.TimeoutInterceptor;
 import com.fz.network.utils.NetworkUtil;
 
@@ -58,7 +58,6 @@ import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
-import okhttp3.internal.Util;
 import okhttp3.logging.HttpLoggingInterceptor;
 
 /**
@@ -193,6 +192,19 @@ public class OKHttpBuilder {
      */
     public OKHttpBuilder timeoutInterceptor() {
         return timeoutInterceptor(new TimeoutInterceptor());
+    }
+
+    /**
+     * 日志拦截器
+     *
+     * @param callback 动态参数获取接口
+     * @author dingpeihua
+     * @date 2019/9/2 18:02
+     * @version 1.0
+     */
+    public OKHttpBuilder netLogInterceptor(NetLoggingInterceptor.OnDynamicParamCallback callback) {
+        interceptors.add(new NetLoggingInterceptor(callback));
+        return this;
     }
 
     /**

@@ -72,6 +72,44 @@
 ```java
    CacheManager.initCacheManager(context, "mnt/cache/network/");
 ```
+### 6、网络日志
+```java 
+    OKHttpBuilder.newBuilder(MainApplication.getContext())
+             .netLogInterceptor(new NetLoggingInterceptor.OnDynamicParamCallback() {
+                            @Override
+                            public String getVersionName() {
+                                return BuildConfig.VERSION_NAME;
+                            }
+
+                            @Override
+                            public String getLogTag() {
+                                return "Android-Demo";
+                            }
+
+                            @Override
+                            public String getServiceIp() {
+                                return "10.36.5.100";
+                            }
+                        }) .build();
+     或者
+     OKHttpBuilder.newBuilder(MainApplication.getContext())
+             .addInterceptor(new NetLoggingInterceptor(new NetLoggingInterceptor.OnDynamicParamCallback() {
+                            @Override
+                            public String getVersionName() {
+                                 return BuildConfig.VERSION_NAME;
+                            }
+
+                            @Override
+                            public String getLogTag() {
+                                 return "Android-Demo";
+                            }
+
+                            @Override
+                            public String getServiceIp() {
+                                return "10.36.5.100";
+                            }
+                        })) .build();
+```
 ## 添加存储库
 
 ```py
