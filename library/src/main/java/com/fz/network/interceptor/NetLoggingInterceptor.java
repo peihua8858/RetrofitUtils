@@ -254,15 +254,36 @@ public class NetLoggingInterceptor implements Interceptor {
     }
 
     /**
+     * 日志系统动态获取参数
+     *
      * @author dingpeihua
      * @version 1.0
      * @date 2019/9/2 18:03
      */
     public interface OnDynamicParamCallback {
+        /**
+         * APP当前版本号，如：1.0.0
+         *
+         * @return
+         */
         String getVersionName();
 
+        /**
+         * 日志筛选标签
+         *
+         * @author dingpeihua
+         * @date 2019/9/2 18:27
+         * @version 1.0
+         */
         String getLogTag();
 
+        /**
+         * 日志服务器ip地址
+         *
+         * @author dingpeihua
+         * @date 2019/9/2 18:27
+         * @version 1.0
+         */
         String getServiceIp();
     }
 }
