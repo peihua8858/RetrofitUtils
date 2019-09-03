@@ -89,14 +89,6 @@ public class OKHttpBuilder {
     private OKHttpBuilder(Context context, OkHttpClient.Builder builder) {
         this.context = context;
         this.builder = builder;
-        if (context != null) {
-            NetworkUtil.initNetwork(context);
-            CacheManager.initCacheManager(context);
-        }
-    }
-
-    public static OKHttpBuilder newBuilder() {
-        return new OKHttpBuilder(null, new OkHttpClient().newBuilder());
     }
 
     public static OKHttpBuilder newBuilder(Context context) {
@@ -448,6 +440,10 @@ public class OKHttpBuilder {
     }
 
     public OkHttpClient build() {
+        if (context != null) {
+            NetworkUtil.initNetwork(context);
+            CacheManager.initCacheManager(context);
+        }
         if (cookies != null && context != null) {
             SharedPrefsCookiePersistor sharedPrefsCookiePersistor = new SharedPrefsCookiePersistor(context);
             CookieJar cookieJar = new PersistentCookieJar(new SetCookieCache(), sharedPrefsCookiePersistor) {
