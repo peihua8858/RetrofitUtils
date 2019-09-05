@@ -210,15 +210,15 @@ public class NetLoggingInterceptor implements Interceptor {
             object.put("responseHeader", responseHeader);
             String phoneInfo = "android-" + Build.MODEL + "-" + Build.VERSION.RELEASE + "-" + Locale.getDefault().getLanguage();
             object.put("level", phoneInfo);
-            object.put("userId", "zaful");
-            object.put("appName", "Zaful");
+            object.put("userId", mCallback.getAppName());
+            object.put("appName", mCallback.getAppName());
             object.put("platform", getPlatform(tag));
 
             object.put("url", url);
             object.put("request", requestBody);
             object.put("response", responseBody);
             object.put("device", Build.MODEL + "-" + Build.VERSION.RELEASE);
-            object.put("domain", "ZF-Android");
+            object.put("domain", mCallback.getDomain());
             object.put("version", mCallback.getVersionName());
             object.put("feeTime", timing);
             KLog.d("NetLoggingInterceptor>>>" + object);
@@ -284,6 +284,24 @@ public class NetLoggingInterceptor implements Interceptor {
          * @date 2019/9/2 18:27
          * @version 1.0
          */
-        String getServiceIp();
+        default String getServiceIp() {
+            return "10.36.5.100";
+        }
+
+        /**
+         * 项目名称
+         *
+         * @return
+         */
+        String getAppName();
+
+        /**
+         * 域名,默认项目名称
+         *
+         * @return
+         */
+        default String getDomain() {
+            return getAppName();
+        }
     }
 }
