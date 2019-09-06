@@ -1,6 +1,7 @@
 package com.fz.network.interceptor;
 
 import android.os.Build;
+import android.text.Html;
 import android.text.TextUtils;
 
 import com.socks.library.KLog;
@@ -135,7 +136,10 @@ public class NetLoggingInterceptor implements Interceptor {
                 if (isPlaintext(buffer)) {
                     requestHeaderTag.append("<br/><font color='#AE8ABE'>请求参数 </font>(").append(requestBody.contentLength()).append("-byte body)<br/>");
                     requestBodyStr = buffer.readString(charset == null ? UTF8 : charset);
-                    requestHeaderTag.append(requestBodyStr);
+                    requestHeaderTag
+                            .append("<pre style='color: #AAAAAA'>")
+                            .append(Html.escapeHtml(requestBodyStr))
+                            .append("</pre>");
                     requestHeaderTag.append("<br/><br/>")
                     ;
                 } else {
@@ -179,7 +183,9 @@ public class NetLoggingInterceptor implements Interceptor {
                         .append(response.code()).append(' ').append(response.message()).append("--")
                         .append(buffer.size()).append("-byte body)<br/>");
                 responseBodyStr = buffer.clone().readString(charset == null ? UTF8 : charset);
-                responseHeaderTag.append(responseBodyStr);
+                responseHeaderTag.append("<pre style='color: #AAAAAA'>")
+                        .append(Html.escapeHtml(responseBodyStr))
+                        .append("</pre>");
             }
         }
         sendPost(url.toString(), requestHeader, requestHeaderTag, requestBodyStr, responseHeader, responseHeaderTag, responseBodyStr, tookMs);
@@ -218,7 +224,7 @@ public class NetLoggingInterceptor implements Interceptor {
             object.put("request", requestBody);
             object.put("response", responseBody);
             object.put("device", Build.MODEL + "-" + Build.VERSION.RELEASE);
-            object.put("domain", mCallback.getDomain());
+            object.put("domain", mCallback.getPlatform());
             object.put("version", mCallback.getVersionName());
             object.put("feeTime", timing);
             KLog.d("NetLoggingInterceptor>>>" + object);
@@ -235,9 +241,9 @@ public class NetLoggingInterceptor implements Interceptor {
 
     String getPlatform(String logTag) {
         if (TextUtils.isEmpty(logTag)) {
-            return "ZF-Android";
+            return mCallback.getPlatform();
         }
-        return "ZF-Android-" + logTag;
+        return mCallback.getPlatform() + "-" + logTag;
     }
 
     static class ResponseCallback implements Callback {
@@ -300,8 +306,8 @@ public class NetLoggingInterceptor implements Interceptor {
          *
          * @return
          */
-        default String getDomain() {
-            return getAppName();
+        default String getPlatform() {
+            return getAppName() + "-Android";
         }
     }
 }
