@@ -6,6 +6,7 @@ import com.socks.library.KLog;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import okhttp3.FormBody;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -27,15 +28,32 @@ public class TimeoutInterceptor implements Interceptor {
     public Response intercept(Chain chain) throws IOException {
         Request request = chain.request();
         RequestBody requestBody = request.body();
-        int connectTimeout;
-        int readTimeout;
-        int writeTimeout;
+        int connectTimeout = chain.connectTimeoutMillis();
+        int readTimeout = chain.readTimeoutMillis();
+        int writeTimeout = chain.writeTimeoutMillis();
         KLog.d("TimeoutInterceptor>>>requestBody:" + (requestBody != null ? requestBody.getClass() : null));
         if (requestBody instanceof TimeoutRequestBody) {
             TimeoutRequestBody body = (TimeoutRequestBody) requestBody;
             connectTimeout = (int) body.getConnectTimeout(chain.connectTimeoutMillis());
             readTimeout = (int) body.getReadTimeout(chain.readTimeoutMillis());
             writeTimeout = (int) body.getWriteTimeout(chain.writeTimeoutMillis());
+        } else if (requestBody instanceof FormBody) {
+            FormBody body = (FormBody) requestBody;
+            int size = body.size();
+            FormBody.Builder builder = new FormBody.Builder();
+            for (int i = 0; i < size; i++) {
+                final String name = body.name(i);
+                if (READ_TIMEOUT.equals(name)) {
+                    readTimeout = toInteger(body.value(i), chain.readTimeoutMillis());
+                } else if (WRITE_TIMEOUT.equals(name)) {
+                    writeTimeout = toInteger(body.value(i), chain.writeTimeoutMillis());
+                } else if (CONNECT_TIMEOUT.equals(name)) {
+                    connectTimeout = toInteger(body.value(i), chain.connectTimeoutMillis());
+                } else {
+                    builder.add(name, body.value(i));
+                }
+            }
+            request = request.newBuilder().post(builder.build()).build();
         } else {
             String connectNew = request.header(CONNECT_TIMEOUT);
             String readNew = request.header(READ_TIMEOUT);
@@ -66,7 +84,7 @@ public class TimeoutInterceptor implements Interceptor {
      */
     int toInteger(String value, int defaultValue) {
         try {
-            return (int) Double.parseDouble(value);
+            return Integer.parseInt(value);
         } catch (Exception ignored) {
         }
         return defaultValue;

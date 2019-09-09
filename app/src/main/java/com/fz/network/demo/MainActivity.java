@@ -46,7 +46,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void requestAddressList() {
-        ApiManager.addressApi().getAddressLits(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), "{\"data\":{\"coupon\":\"\",\"ab_cart_price\":0,\"auto_coupon\":1,\"no_login_select\":0,\"source\":\"0\",\"appsFlyerUID\":\"1560152354316-3505768219074339794\"},\"device_id\":\"e076fff9c03bea2a\",\"version\":\"4.7.0\",\"user_country_code\":\"HK\",\"token\":\"fe4fc9d8e340463169ed1ca4b3942899\",\"country_code\":\"HK\",\"user_country_id\":\"239\",\"lang\":\"zh-tw\",\"country_id\":\"239\"}"))
+//        ApiManager.addressApi().getAddressLits(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), "{\"data\":{\"coupon\":\"\",\"ab_cart_price\":0,\"auto_coupon\":1,\"no_login_select\":0,\"source\":\"0\",\"appsFlyerUID\":\"1560152354316-3505768219074339794\"},\"device_id\":\"e076fff9c03bea2a\",\"version\":\"4.7.0\",\"user_country_code\":\"HK\",\"token\":\"fe4fc9d8e340463169ed1ca4b3942899\",\"country_code\":\"HK\",\"user_country_id\":\"239\",\"lang\":\"zh-tw\",\"country_id\":\"239\"}"))
+        final RequestParam request = new RequestParam(false, true);
+        request.connectTimeoutMillis(1000);
+        request.readTimeoutMillis(1000);
+        request.writeTimeoutMillis(1000);
+        request.setJsonParams(false);
+        ApiManager.addressApi().getAddressLits(request.createRequestBody())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new RSubscriber<String>(this) {

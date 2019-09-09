@@ -70,7 +70,7 @@ public class ApiManager extends BasicDataManager {
     public <T> T createApi(String host, Class<T> tClass) {
         return VpHttpClient.createService(vpNewtWork)
                 .setHost(host)
-                .setHttpClient(OKHttpBuilder.newBuilder()
+                .setHttpClient(OKHttpBuilder.newBuilder(MyApplication.getContext())
                         .connectTimeout(30000, TimeUnit.MILLISECONDS)
                         .readTimeout(30000, TimeUnit.MILLISECONDS)
                         .writeTimeout(30000, TimeUnit.MILLISECONDS)
@@ -90,23 +90,12 @@ public class ApiManager extends BasicDataManager {
                             public String getServiceIp() {
                                 return null;
                             }
-                        }))
-                        .netLogInterceptor(new NetLoggingInterceptor.OnDynamicParamCallback() {
-                            @Override
-                            public String getVersionName() {
-                                return BuildConfig.VERSION_NAME;
-                            }
 
                             @Override
-                            public String getLogTag() {
-                                return "Android-Demo";
-                            }
-
-                            @Override
-                            public String getServiceIp() {
+                            public String getAppName() {
                                 return null;
                             }
-                        })
+                        }))
                         .build())
                 .setMediaType(MediaType.parse("application/json; charset=utf-8"))
                 .setService(tClass)

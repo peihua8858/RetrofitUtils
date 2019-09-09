@@ -20,6 +20,7 @@ package com.fz.network.params;
 
 import android.text.TextUtils;
 
+import com.fz.network.interceptor.TimeoutInterceptor;
 import com.google.gson.Gson;
 
 import java.io.File;
@@ -506,6 +507,9 @@ public class VpRequestParams implements Serializable {
                     builder.add(key, VpUrlUtil.toString(value));
                 }
             }
+            builder.add(TimeoutInterceptor.CONNECT_TIMEOUT, String.valueOf(params.connectTimeout))
+                    .add(TimeoutInterceptor.READ_TIMEOUT, String.valueOf(params.readTimeout))
+                    .add(TimeoutInterceptor.WRITE_TIMEOUT, String.valueOf(params.writeTimeout));
             return builder.build();
         }
     }
@@ -527,7 +531,6 @@ public class VpRequestParams implements Serializable {
                     RequestBody.create(MediaType.parse(entry.getValue().contentType), entry.getValue().file));
         }
         builder.setType(MultipartBody.FORM);
-        MultipartBody requestBody = builder.build();
-        return requestBody;
+        return builder.build();
     }
 }
