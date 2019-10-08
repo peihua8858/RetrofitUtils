@@ -85,6 +85,7 @@ public class OKHttpBuilder {
     private boolean isEnabledHttpLog;
     private Interceptor securityInterceptor;
     private Interceptor responseCacheInterceptor;
+    private Interceptor netLogInterceptor;
 
     private OKHttpBuilder(Context context, OkHttpClient.Builder builder) {
         this.context = context;
@@ -138,7 +139,9 @@ public class OKHttpBuilder {
     }
 
     public OKHttpBuilder addInterceptor(Interceptor interceptor) {
-        if (interceptor != null) {
+        if (interceptor instanceof NetLoggingInterceptor) {
+            netLogInterceptor = interceptor;
+        } else if (interceptor != null) {
             this.interceptors.add(interceptor);
         }
         return this;
@@ -195,7 +198,7 @@ public class OKHttpBuilder {
      * @version 1.0
      */
     public OKHttpBuilder netLogInterceptor(NetLoggingInterceptor.OnDynamicParamCallback callback) {
-        interceptors.add(new NetLoggingInterceptor(callback));
+        netLogInterceptor = new NetLoggingInterceptor(callback);
         return this;
     }
 
@@ -444,6 +447,8 @@ public class OKHttpBuilder {
             NetworkUtil.initNetwork(context);
             CacheManager.initCacheManager(context);
         }
+        builder.interceptors().clear();
+        builder.networkInterceptors().clear();
         if (cookies != null && context != null) {
             SharedPrefsCookiePersistor sharedPrefsCookiePersistor = new SharedPrefsCookiePersistor(context);
             CookieJar cookieJar = new PersistentCookieJar(new SetCookieCache(), sharedPrefsCookiePersistor) {
@@ -490,6 +495,9 @@ public class OKHttpBuilder {
                 e.printStackTrace();
             }
         }
+        if (netLogInterceptor != null) {
+            builder.addInterceptor(netLogInterceptor);
+        }
         if (securityInterceptor != null) {
             builder.addInterceptor(securityInterceptor);
         }
@@ -506,7 +514,7 @@ public class OKHttpBuilder {
             builder.addInterceptor(new HttpLoggingInterceptor()
                     .setLevel(HttpLoggingInterceptor.Level.BODY));
         }
-        if (networkInterceptors != null && networkInterceptors.size() > 0) {
+        if (networkInterceptors.size() > 0) {
             for (Interceptor networkInterceptor : networkInterceptors) {
                 builder.addNetworkInterceptor(networkInterceptor);
             }

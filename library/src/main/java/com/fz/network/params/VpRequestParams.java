@@ -72,7 +72,7 @@ public class VpRequestParams implements Serializable {
     protected final static String LOG_TAG = "RequestParams";
     protected final ConcurrentHashMap<String, Object> urlParams = new ConcurrentHashMap<>();
     protected final ConcurrentHashMap<String, FileWrapper> fileParams = new ConcurrentHashMap<>();
-    protected final ConcurrentHashMap<String, String> heads = new ConcurrentHashMap<>();
+    protected final ConcurrentHashMap<String, String> headers = new ConcurrentHashMap<>();
     protected final Gson mGson = new Gson();
     protected String jsonParams;
     protected boolean isJsonParams = true;
@@ -114,6 +114,19 @@ public class VpRequestParams implements Serializable {
      */
     public final VpRequestParams openCache() {
         put("isOpenCache", true);
+        return this;
+    }
+
+    /**
+     * Adds a key/value string pair to the request.
+     *
+     * @param key   the key name for the new param.
+     * @param value the value string for the new param.
+     */
+    public VpRequestParams addHeader(String key, String value) {
+        if (key != null && value != null) {
+            headers.put(key, value);
+        }
         return this;
     }
 
@@ -234,21 +247,6 @@ public class VpRequestParams implements Serializable {
         }
         return this;
     }
-
-
-    /**
-     * Adds a key/value string pair to the request.
-     *
-     * @param key   the key name for the new param.
-     * @param value the value string for the new param.
-     */
-    public VpRequestParams putHead(String key, String value) {
-        if (key != null && value != null) {
-            heads.put(key, value);
-        }
-        return this;
-    }
-
 
     public VpRequestParams putJsonParams(String params) {
         jsonParams = params;
@@ -383,8 +381,8 @@ public class VpRequestParams implements Serializable {
         return fileParams;
     }
 
-    public ConcurrentHashMap<String, String> getHeads() {
-        return heads;
+    public ConcurrentHashMap<String, String> getHeaders() {
+        return headers;
     }
 
 
@@ -492,6 +490,7 @@ public class VpRequestParams implements Serializable {
                 params.jsonParams = mGson.toJson(paramsMap);
             }
             return TimeoutRequestBody.create(JSON_TYPE, params.jsonParams)
+                    .setHeaders(params.headers)
                     .connectTimeoutMillis(params.connectTimeout)
                     .readTimeoutMillis(params.readTimeout)
                     .writeTimeoutMillis(params.writeTimeout);
@@ -510,6 +509,17 @@ public class VpRequestParams implements Serializable {
             builder.add(TimeoutInterceptor.CONNECT_TIMEOUT, String.valueOf(params.connectTimeout))
                     .add(TimeoutInterceptor.READ_TIMEOUT, String.valueOf(params.readTimeout))
                     .add(TimeoutInterceptor.WRITE_TIMEOUT, String.valueOf(params.writeTimeout));
+            if (params.headers.size() > 0) {
+                Map<String, String> headers = params.headers;
+                Iterator<String> keys = headers.keySet().iterator();
+                while (keys.hasNext()) {
+                    final String key = keys.next();
+                    final String value = headers.get(key);
+                    if (value != null) {
+                        builder.add(TimeoutInterceptor.HEAD_KEY + key, value);
+                    }
+                }
+            }
             return builder.build();
         }
     }

@@ -4,6 +4,9 @@ import com.fz.network.params.TimeoutRequestBody;
 import com.socks.library.KLog;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.FormBody;
@@ -23,6 +26,7 @@ public class TimeoutInterceptor implements Interceptor {
     public static final String CONNECT_TIMEOUT = "connect_timeout";
     public static final String READ_TIMEOUT = "read_timeout";
     public static final String WRITE_TIMEOUT = "write_timeout";
+    public static final String HEAD_KEY = "header_";
 
     @Override
     public Response intercept(Chain chain) throws IOException {
@@ -37,10 +41,14 @@ public class TimeoutInterceptor implements Interceptor {
             connectTimeout = (int) body.getConnectTimeout(chain.connectTimeoutMillis());
             readTimeout = (int) body.getReadTimeout(chain.readTimeoutMillis());
             writeTimeout = (int) body.getWriteTimeout(chain.writeTimeoutMillis());
+            Request.Builder builder = addHeaders(request.newBuilder(), body.getHeaders());
+            body.setHeaders(null);
+            request = builder.post(body).build();
         } else if (requestBody instanceof FormBody) {
             FormBody body = (FormBody) requestBody;
             int size = body.size();
             FormBody.Builder builder = new FormBody.Builder();
+            Map<String, String> headers = new HashMap<>();
             for (int i = 0; i < size; i++) {
                 final String name = body.name(i);
                 if (READ_TIMEOUT.equals(name)) {
@@ -49,11 +57,14 @@ public class TimeoutInterceptor implements Interceptor {
                     writeTimeout = toInteger(body.value(i), chain.writeTimeoutMillis());
                 } else if (CONNECT_TIMEOUT.equals(name)) {
                     connectTimeout = toInteger(body.value(i), chain.connectTimeoutMillis());
+                } else if (name.startsWith(HEAD_KEY)) {
+                    headers.put(getHeaderKey(name), body.value(i));
                 } else {
                     builder.add(name, body.value(i));
                 }
             }
-            request = request.newBuilder().post(builder.build()).build();
+            request = addHeaders(request.newBuilder(), headers)
+                    .post(builder.build()).build();
         } else {
             String connectNew = request.header(CONNECT_TIMEOUT);
             String readNew = request.header(READ_TIMEOUT);
@@ -69,6 +80,10 @@ public class TimeoutInterceptor implements Interceptor {
                 .withReadTimeout(readTimeout, TimeUnit.MILLISECONDS)
                 .withWriteTimeout(writeTimeout, TimeUnit.MILLISECONDS)
                 .proceed(request);
+    }
+
+    String getHeaderKey(String name) {
+        return name.substring(HEAD_KEY.length());
     }
 
     int toTimeout(String value, int defaultValue) {
@@ -88,5 +103,23 @@ public class TimeoutInterceptor implements Interceptor {
         } catch (Exception ignored) {
         }
         return defaultValue;
+    }
+
+    private Request.Builder addHeaders(Request.Builder builder, Map<String, String> headers) {
+        if (headers != null && headers.size() > 0) {
+            Iterator<String> keys = headers.keySet().iterator();
+            while (keys.hasNext()) {
+                final String key = keys.next();
+                final String value = headers.get(key);
+                KLog.d("TimeoutInterceptor>>>header:" + key + "," + value);
+                addHeader(builder, key, value);
+            }
+        }
+        return builder;
+    }
+
+    private Request.Builder addHeader(Request.Builder builder, String name, String value) {
+        builder.addHeader(name, value);
+        return builder;
     }
 }

@@ -71,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
 
     void requestCmsData() {
         final RequestParam request = new RequestParam(false, true);
+        request.setJsonParams(false);
         request.connectTimeoutMillis(1000);
         request.readTimeoutMillis(1000);
         request.writeTimeoutMillis(1000);

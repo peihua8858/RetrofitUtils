@@ -4,6 +4,7 @@ import androidx.annotation.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
@@ -17,11 +18,12 @@ import okio.ByteString;
  * @version 1.0
  * @date 2019/8/30 17:02
  */
-public class TimeoutRequestBody extends RequestBody {
+public final class TimeoutRequestBody extends RequestBody {
     private final RequestBody other;
     private long connectTimeout;
     private long readTimeout;
     private long writeTimeout;
+    private Map<String, String> headers;
 
     public TimeoutRequestBody connectTimeoutMillis(long timeMillis) {
         this.connectTimeout = timeMillis;
@@ -40,6 +42,15 @@ public class TimeoutRequestBody extends RequestBody {
 
     public long getConnectTimeout(long defaultTimeout) {
         return connectTimeout > 0 ? connectTimeout : defaultTimeout;
+    }
+
+    public TimeoutRequestBody setHeaders(Map<String, String> headers) {
+        this.headers = headers;
+        return this;
+    }
+
+    public Map<String, String> getHeaders() {
+        return headers;
     }
 
     public long getReadTimeout(long defaultTimeout) {

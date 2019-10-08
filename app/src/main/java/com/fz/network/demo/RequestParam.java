@@ -58,6 +58,8 @@ public class RequestParam extends VpRequestParams {
         //Data 中的公共字段
         //购物车优惠券与价格明细同步其他接口
         data.put("appsFlyerUID", "1560152354316-3505768219074339794");
+        String userAgent = System.getProperty("http.agent");
+        addHeader("User-Agent", userAgent+"RequestFlag/Push");
     }
 
     public RequestParam(String key, Object value) {
@@ -76,7 +78,8 @@ public class RequestParam extends VpRequestParams {
     }
 
     public RequestParam(boolean hasData, boolean isReadCache) {
-        super(isReadCache);
+        this();
+        setOpenCache(isReadCache);
         this.hasData = hasData;
     }
 
@@ -148,6 +151,7 @@ public class RequestParam extends VpRequestParams {
             }
         }
     }
+
     /**
      * 合并 Map
      *
@@ -166,6 +170,7 @@ public class RequestParam extends VpRequestParams {
         }
         return target;
     }
+
     @Override
     public MultipartBody createFileRequestBody() {
         urlParams.putAll(publicParams);
