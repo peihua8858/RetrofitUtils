@@ -86,18 +86,17 @@ public class NetLoggingInterceptor implements Interceptor {
 
     @Override
     public Response intercept(Chain chain) throws IOException {
-        Request request = chain.request();
         Response response = null;
         StringBuilder responseHeaderTag = new StringBuilder();
         long startNs = System.nanoTime();
-        long tookMs = 0;
         try {
-            response = chain.proceed(request);
+            response = chain.proceed(chain.request());
         } catch (Exception e) {
             responseHeaderTag.append("<-- HTTP FAILED: ").append(e).append("<br/>");
             throw e;
         }
-        tookMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNs);
+        Request request = response.request();
+        long tookMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNs);
         StringBuilder requestHeaderTag = new StringBuilder();
         StringBuilder requestHeader = new StringBuilder();
         StringBuilder responseHeader = new StringBuilder();

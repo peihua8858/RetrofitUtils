@@ -24,23 +24,22 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.appcompat:appcompat:1.0.2'
-    testImplementation 'junit:junit:4.12'
+    compileOnly 'androidx.appcompat:appcompat:1.0.2'
     // HTTP请求库
-    implementation "com.squareup.okhttp3:okhttp:3.12.3"
-    implementation "com.github.franmontiel:PersistentCookieJar:v1.0.0"
-    implementation "com.squareup.okhttp3:logging-interceptor:3.12.3"
-    implementation "com.squareup.okio:okio:1.17.2"
-    implementation "com.google.code.gson:gson:2.8.5"
-    implementation ("com.squareup.retrofit2:retrofit:2.5.0"){
+    compileOnly "com.squareup.okhttp3:okhttp:3.12.3"
+    compileOnly "com.github.franmontiel:PersistentCookieJar:v1.0.0"
+    compileOnly "com.squareup.okhttp3:logging-interceptor:3.12.3"
+    compileOnly "com.squareup.okio:okio:1.17.2"
+    compileOnly "com.google.code.gson:gson:2.8.5"
+    compileOnly ("com.squareup.retrofit2:retrofit:2.5.0"){
         exclude group: 'com.squareup.retrofit2', module: 'adapter-rxjava2'
     }
 //    compileOnly "com.squareup.retrofit2:adapter-rxjava2:2.5.0"
-    implementation "io.reactivex.rxjava2:rxandroid:2.1.0"
-    implementation "io.reactivex.rxjava2:rxjava:2.2.3"
-    implementation "com.fz.klog:Klog:1.0.0"
+    compileOnly "io.reactivex.rxjava2:rxandroid:2.1.0"
+    compileOnly "io.reactivex.rxjava2:rxjava:2.2.3"
+    compileOnly "com.fz.klog:Klog:1.0.0"
     //rxjava2 activity及fragment生命周期监听
-    implementation 'com.uber.autodispose:autodispose:1.1.0'
-    implementation 'com.uber.autodispose:autodispose-android-archcomponents:1.1.0'
+    compileOnly 'com.uber.autodispose:autodispose:1.1.0'
+    compileOnly 'com.uber.autodispose:autodispose-android-archcomponents:1.1.0'
 }
 apply from: "push_maven.gradle"

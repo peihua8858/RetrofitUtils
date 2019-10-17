@@ -120,12 +120,19 @@ public class HttpLoggingInterceptor implements Interceptor {
     @Override
     public Response intercept(Chain chain) throws IOException {
         HttpLoggingInterceptor.Level level = this.level;
-
-        Request request = chain.request();
         if (level == HttpLoggingInterceptor.Level.NONE) {
-            return chain.proceed(request);
+            return chain.proceed(chain.request());
         }
-
+        long startNs = System.nanoTime();
+        Response response;
+        try {
+            response = chain.proceed(chain.request());
+        } catch (Exception e) {
+            KLog.d("<-- HTTP FAILED: " + e);
+            throw e;
+        }
+        long tookMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNs);
+        Request request = response.request();
         boolean logBody = level == HttpLoggingInterceptor.Level.BODY;
         boolean logHeaders = logBody || level == HttpLoggingInterceptor.Level.HEADERS;
 
@@ -185,16 +192,6 @@ public class HttpLoggingInterceptor implements Interceptor {
                 }
             }
         }
-
-        long startNs = System.nanoTime();
-        Response response;
-        try {
-            response = chain.proceed(request);
-        } catch (Exception e) {
-            KLog.d("<-- HTTP FAILED: " + e);
-            throw e;
-        }
-        long tookMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNs);
 
         ResponseBody responseBody = response.body();
         long contentLength = 0;
