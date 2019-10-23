@@ -456,8 +456,9 @@ public class OKHttpBuilder {
                 public synchronized List<Cookie> loadForRequest(HttpUrl url) {
                     final List<Cookie> validCookies = super.loadForRequest(url);
                     for (CookieSave cookieSave : cookies) {
-                        if (cookieSave.isAddCookie) {
-                            validCookies.add(cookieSave.cookie);
+                        final Cookie cookie = cookieSave.cookie;
+                        if (cookieSave.isAddCookie && cookie.matches(url)) {
+                            validCookies.add(cookie);
                         }
                     }
                     return validCookies;
