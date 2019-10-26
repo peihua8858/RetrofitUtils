@@ -13,6 +13,7 @@ package com.fz.network.cache;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.text.TextUtils;
 
 import com.fz.network.utils.NetworkUtil;
 import com.socks.library.KLog;
@@ -36,9 +37,9 @@ public class CacheManager {
      */
     public static final String APP_DISK_CACHE_CONFIG = "diskCache";
     /**
-     * 网络数据缓存目录
+     * 数据缓存目录
      */
-    static final String NETWORK_DISK_CACHE_CONFIG = "networkCache";
+    static final String DISK_CACHE_CONFIG = "dataCache";
     //max cache size 10mb
     private static final long DISK_CACHE_SIZE = 1024 * 1024 * 10;
 
@@ -47,10 +48,13 @@ public class CacheManager {
     private static CacheManager cacheManager;
 
     public static CacheManager initCacheManager(Context context) {
-        return initCacheManager(context, CacheUtil.getDiskCacheDir(context, APP_DISK_CACHE_CONFIG, NETWORK_DISK_CACHE_CONFIG));
+        return initCacheManager(context, null);
     }
 
     public static CacheManager initCacheManager(Context context, String cachePath) {
+        if (TextUtils.isEmpty(cachePath)) {
+            cachePath = CacheUtil.getDiskCacheDir(context, APP_DISK_CACHE_CONFIG, DISK_CACHE_CONFIG);
+        }
         NetworkUtil.initNetwork(context);
         if (cacheManager == null) {
             synchronized (CacheManager.class) {

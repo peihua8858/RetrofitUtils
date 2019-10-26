@@ -18,6 +18,8 @@ import com.franmontiel.persistentcookiejar.PersistentCookieJar;
 import com.franmontiel.persistentcookiejar.cache.SetCookieCache;
 import com.franmontiel.persistentcookiejar.persistence.SharedPrefsCookiePersistor;
 import com.fz.network.cache.CacheManager;
+import com.fz.network.cache.HttpCacheManager;
+import com.fz.network.cache.IHttpCache;
 import com.fz.network.interceptor.NetLoggingInterceptor;
 import com.fz.network.interceptor.TimeoutInterceptor;
 import com.fz.network.utils.NetworkUtil;
@@ -86,6 +88,7 @@ public class OKHttpBuilder {
     private Interceptor securityInterceptor;
     private Interceptor responseCacheInterceptor;
     private Interceptor netLogInterceptor;
+    private String cachePath;
 
     private OKHttpBuilder(Context context, OkHttpClient.Builder builder) {
         this.context = context;
@@ -304,6 +307,7 @@ public class OKHttpBuilder {
         return this;
     }
 
+
     /**
      * @see {@link OkHttpClient.Builder#sslSocketFactory(SSLSocketFactory, X509TrustManager)}
      */
@@ -442,10 +446,48 @@ public class OKHttpBuilder {
         return this;
     }
 
+    /**
+     * 设置缓存处理工具
+     * 默认缓存路径：
+     * <li>1、如果存在外部sdcard则缓存在{@link Context#getExternalCacheDir()}/diskCache/dataCache,</li>
+     * <li>   即路径为sdcard/Android/data/packageName/cache/diskCache/dataCache </li>
+     * <li>2、如果不存在外部sdcard 则缓存在{@link Context#getCacheDir()}/diskCache/dataCache,</li>
+     * <li>   即路径为/data/data/packageName/cache/diskCache/dataCache</li>
+     *
+     * @param iHttpCache
+     * @author dingpeihua
+     * @date 2019/10/26 9:35
+     * @version 1.0
+     */
+    public OKHttpBuilder setHttpCache(IHttpCache iHttpCache) {
+        if (iHttpCache != null) {
+            HttpCacheManager.instance().setHttpCache(iHttpCache);
+        }
+        return this;
+    }
+
+    /**
+     * 设置缓存目录
+     * 默认缓存路径：
+     * <li>1、如果存在外部sdcard则缓存在{@link Context#getExternalCacheDir()}/diskCache/dataCache,</li>
+     * <li>   即路径为sdcard/Android/data/packageName/cache/diskCache/dataCache </li>
+     * <li>2、如果不存在外部sdcard 则缓存在{@link Context#getCacheDir()}/diskCache/dataCache,</li>
+     * <li>   即路径为/data/data/packageName/cache/diskCache/dataCache</li>
+     *
+     * @param cachePath
+     * @author dingpeihua
+     * @date 2019/10/26 9:53
+     * @version 1.0
+     */
+    public OKHttpBuilder setCachePath(String cachePath) {
+        this.cachePath = cachePath;
+        return this;
+    }
+
     public OkHttpClient build() {
         if (context != null) {
             NetworkUtil.initNetwork(context);
-            CacheManager.initCacheManager(context);
+            CacheManager.initCacheManager(context, cachePath);
         }
         builder.interceptors().clear();
         builder.networkInterceptors().clear();

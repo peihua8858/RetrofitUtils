@@ -33,6 +33,7 @@ final class CacheUtil {
     static final Charset UTF_8 = Charset.forName("UTF-8");
 
     private CacheUtil() {
+        throw new UnsupportedOperationException();
     }
 
     static String readFully(Reader reader) throws IOException {
