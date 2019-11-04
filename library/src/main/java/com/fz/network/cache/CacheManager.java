@@ -13,7 +13,10 @@ package com.fz.network.cache;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.text.TextUtils;
+
+import androidx.core.content.pm.PackageInfoCompat;
 
 import com.fz.network.utils.NetworkUtil;
 import com.socks.library.KLog;
@@ -235,10 +238,20 @@ public class CacheManager {
         PackageManager pm = context.getPackageManager();
         try {
             PackageInfo pi = pm.getPackageInfo(context.getPackageName(), 0);
-            return pi == null ? 0 : (int) pi.getLongVersionCode();
-        } catch (PackageManager.NameNotFoundException e) {
+            return getAppVersion(pi);
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return 0;
+    }
+
+    /**
+     * 获取APP版本号
+     */
+    private int getAppVersion(PackageInfo pi) {
+        if (pi == null) {
+            return 0;
+        }
+        return (int) PackageInfoCompat.getLongVersionCode(pi);
     }
 }
