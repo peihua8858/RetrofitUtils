@@ -23,12 +23,15 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 
 /**
- * 作者：Create on 2017/1/4 10:12 by longxl
- * 邮箱：214980423@qq.com
- * 描述：HTTP 缓存管理
- * 最近修改：2017/1/4 10:12 modify by longxl
+ * 缓存管理
+ * 增加过期时间处理
+ *
+ * @author dingpeihua
+ * @version 1.0
+ * @date 2019/11/4 9:52
  */
 public class CacheManager {
     public static final String TAG = "CacheManager";
@@ -40,10 +43,24 @@ public class CacheManager {
      * 数据缓存目录
      */
     static final String DISK_CACHE_CONFIG = "dataCache";
-    //max cache size 10mb
+    /**
+     * max cache size 10mb
+     */
     private static final long DISK_CACHE_SIZE = 1024 * 1024 * 10;
-
+    /**
+     * 数据缓存位置
+     */
     private static final int DISK_CACHE_INDEX = 0;
+    /**
+     * 超时时间缓存位置
+     */
+    private static final int LIFT_TIME_INDEX = 1;
+
+    private static final int CACHE_VALUE_COUNT = 2;
+    /**
+     * 默认的过期时间
+     */
+    private static final long DEFAULT_LIFE_TIME = -1L;
     private DiskLruCache mDiskLruCache;
     private static CacheManager cacheManager;
 
@@ -80,7 +97,7 @@ public class CacheManager {
             try {
                 mDiskLruCache = DiskLruCache.open(diskCacheDir,
                         /*一个key对应多少个文件*/
-                        getAppVersion(context), 1, DISK_CACHE_SIZE);
+                        getAppVersion(context), CACHE_VALUE_COUNT, DISK_CACHE_SIZE);
                 KLog.d(TAG, "mDiskLruCache created");
             } catch (IOException e) {
                 e.printStackTrace();
@@ -91,7 +108,7 @@ public class CacheManager {
     /**
      * 同步设置缓存
      */
-    public synchronized void putCache(String key, String value) {
+    public synchronized void putCache(String key, String value, long lifeTime) {
         if (mDiskLruCache == null) {
             return;
         }
@@ -101,6 +118,7 @@ public class CacheManager {
             os = editor.newOutputStream(DISK_CACHE_INDEX);
             os.write(value.getBytes());
             os.flush();
+            editor.set(LIFT_TIME_INDEX, String.valueOf(lifeTime > 0 ? System.currentTimeMillis() + lifeTime : DEFAULT_LIFE_TIME));
             editor.commit();
             mDiskLruCache.flush();
         } catch (IOException e) {
@@ -117,15 +135,10 @@ public class CacheManager {
     }
 
     /**
-     * 异步设置缓存
+     * 同步设置缓存
      */
-    public void setCache(final String key, final String value) {
-        new Thread() {
-            @Override
-            public void run() {
-                putCache(key, value);
-            }
-        }.start();
+    public synchronized void putCache(String key, String value) {
+        putCache(key, value, DEFAULT_LIFE_TIME);
     }
 
     /**
@@ -138,17 +151,25 @@ public class CacheManager {
         FileInputStream fis = null;
         ByteArrayOutputStream bos = null;
         try {
-            DiskLruCache.Snapshot snapshot = mDiskLruCache.get(encryptMD5(key));
+            String md5Key = encryptMD5(key);
+            DiskLruCache.Snapshot snapshot = mDiskLruCache.get(md5Key);
             if (snapshot != null) {
                 fis = (FileInputStream) snapshot.getInputStream(DISK_CACHE_INDEX);
-                bos = new ByteArrayOutputStream();
-                byte[] buf = new byte[1024];
-                int len;
-                while ((len = fis.read(buf)) != -1) {
-                    bos.write(buf, 0, len);
+                long lifeTime = Long.valueOf(snapshot.getString(LIFT_TIME_INDEX));
+                if (lifeTime == -1L || System.currentTimeMillis() < lifeTime) {
+                    bos = new ByteArrayOutputStream();
+                    byte[] buf = new byte[1024];
+                    int len;
+                    while ((len = fis.read(buf)) != -1) {
+                        bos.write(buf, 0, len);
+                    }
+                    byte[] data = bos.toByteArray();
+                    return new String(data, CacheUtil.UTF_8);
+                } else {
+                    //remove key
+                    mDiskLruCache.remove(md5Key);
+                    return null;
                 }
-                byte[] data = bos.toByteArray();
-                return new String(data, "UTF-8");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -214,7 +235,7 @@ public class CacheManager {
         PackageManager pm = context.getPackageManager();
         try {
             PackageInfo pi = pm.getPackageInfo(context.getPackageName(), 0);
-            return pi == null ? 0 : pi.versionCode;
+            return pi == null ? 0 : (int) pi.getLongVersionCode();
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }

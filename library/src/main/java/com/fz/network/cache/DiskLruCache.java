@@ -159,6 +159,7 @@ public final class DiskLruCache implements Closeable {
     final ThreadPoolExecutor executorService =
             new ThreadPoolExecutor(0, 1, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
     private final Callable<Void> cleanupCallable = new Callable<Void>() {
+        @Override
         public Void call() throws Exception {
             synchronized (DiskLruCache.this) {
                 if (journalWriter == null) {
@@ -636,6 +637,7 @@ public final class DiskLruCache implements Closeable {
     /**
      * Closes this cache. Stored values will remain on the filesystem.
      */
+    @Override
     public synchronized void close() throws IOException {
         if (journalWriter == null) {
             return; // Already closed.
@@ -725,6 +727,7 @@ public final class DiskLruCache implements Closeable {
             return lengths[index];
         }
 
+        @Override
         public void close() {
             for (InputStream in : ins) {
                 CacheUtil.closeQuietly(in);
@@ -985,7 +988,6 @@ public final class DiskLruCache implements Closeable {
     /**
      * Recursively delete everything in {@code dir}.
      */
-    // TODO: this should specify paths as Strings rather than as Files
     public static void deleteContents(File dir) throws IOException {
         File[] files = dir.listFiles();
         if (files == null) {

@@ -30,7 +30,7 @@ public final class HttpCacheManager {
      */
     public static final MediaType MEDIA_TYPE = MediaType.parse("application/json; charset=utf-8");
     private IHttpCache iHttpCache;
-
+    private long cacheLifeTime;
     static class CacheManagerHelper {
         final static HttpCacheManager CACHE_MANAGER = new HttpCacheManager();
     }
@@ -40,6 +40,10 @@ public final class HttpCacheManager {
 
     public void setHttpCache(IHttpCache iHttpCache) {
         this.iHttpCache = iHttpCache;
+    }
+
+    public void setCacheLifeTime(long cacheLifeTime) {
+        this.cacheLifeTime = cacheLifeTime;
     }
 
     /**
@@ -152,7 +156,7 @@ public final class HttpCacheManager {
     }
 
     IHttpCache getHttpCache() {
-        return iHttpCache != null ? iHttpCache : (iHttpCache = new HttpCacheImpl());
+        return iHttpCache != null ? iHttpCache : (iHttpCache = new HttpCacheImpl(cacheLifeTime));
     }
 
 }

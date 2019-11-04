@@ -15,6 +15,7 @@ import android.content.Context;
 import androidx.annotation.Nullable;
 
 import com.franmontiel.persistentcookiejar.PersistentCookieJar;
+import com.franmontiel.persistentcookiejar.cache.CookieCache;
 import com.franmontiel.persistentcookiejar.cache.SetCookieCache;
 import com.franmontiel.persistentcookiejar.persistence.SharedPrefsCookiePersistor;
 import com.fz.network.cache.CacheManager;
@@ -77,10 +78,24 @@ public class OKHttpBuilder {
         }
     }
 
+    static class CookieMap {
+        boolean isAddCookie;
+        private String[] cookies;
+
+        public boolean hasCookies() {
+            return cookies != null && cookies.length > 0;
+        }
+
+        public CookieMap(boolean isAddCookie, String[] cookies) {
+            this.isAddCookie = isAddCookie;
+            this.cookies = cookies;
+        }
+    }
+
     Context context;
     private static final long defaultTimeout = 20_000;
     private final OkHttpClient.Builder builder;
-    private List<CookieSave> cookies = new ArrayList<>();
+    private List<CookieSave> mCookies = new ArrayList<>();
     final List<Interceptor> networkInterceptors = new ArrayList<>();
     private List<Interceptor> interceptors = new ArrayList<>();
     private List<byte[]> certsData;
@@ -89,6 +104,7 @@ public class OKHttpBuilder {
     private Interceptor responseCacheInterceptor;
     private Interceptor netLogInterceptor;
     private String cachePath;
+    private CookieMap cookieMap;
 
     private OKHttpBuilder(Context context, OkHttpClient.Builder builder) {
         this.context = context;
@@ -105,7 +121,7 @@ public class OKHttpBuilder {
     private OKHttpBuilder(OKHttpBuilder other) {
         this.context = other.context;
         this.builder = other.builder;
-        this.cookies = other.cookies;
+        this.mCookies = other.mCookies;
         this.interceptors = other.interceptors;
         this.certsData = other.certsData;
         this.isEnabledHttpLog = other.isEnabledHttpLog;
@@ -115,13 +131,46 @@ public class OKHttpBuilder {
 
     public OKHttpBuilder addCookie(boolean isAddCookie, Cookie cookie) {
         if (cookie != null) {
-            this.cookies.add(new CookieSave(isAddCookie, cookie));
+            this.mCookies.add(new CookieSave(isAddCookie, cookie));
         }
         return this;
     }
 
     public OKHttpBuilder addCookie(Cookie cookie) {
         return addCookie(true, cookie);
+    }
+
+    public OKHttpBuilder addCookie(Cookie... cookies) {
+        return addCookie(true, cookies);
+    }
+
+    public OKHttpBuilder addCookie(boolean isAddCookie, Cookie... cookies) {
+        if (cookies != null && cookies.length > 0) {
+            for (Cookie cookie : cookies) {
+                addCookie(isAddCookie, cookie);
+            }
+        }
+        return this;
+    }
+
+    public OKHttpBuilder addCookie(List<Cookie> cookies) {
+        return addCookie(true, cookies);
+    }
+
+    public OKHttpBuilder addCookie(boolean isAddCookie, List<Cookie> cookies) {
+        if (cookies != null && cookies.size() > 0) {
+            for (Cookie cookie : cookies) {
+                addCookie(isAddCookie, cookie);
+            }
+        }
+        return this;
+    }
+
+    public OKHttpBuilder addCookie(boolean isAddCookie, String... cookies) {
+        if (cookies != null && cookies.length % 4 == 0) {
+            cookieMap = new CookieMap(isAddCookie, cookies);
+        }
+        return this;
     }
 
     public OKHttpBuilder setCertsData(List<byte[]> certs_data) {
@@ -484,6 +533,25 @@ public class OKHttpBuilder {
         return this;
     }
 
+    /**
+     * 设置缓存有效时间
+     * <p>
+     * 注意：如果自定义{@link IHttpCache}，则设置该方法无效，需要重写{@link IHttpCache#getLifeTime()}
+     *
+     * @param lifeTime
+     * @author dingpeihua
+     * @date 2019/11/4 10:50
+     * @version 1.0
+     */
+    public OKHttpBuilder setCacheValidTime(long lifeTime) {
+        HttpCacheManager.instance().setCacheLifeTime(lifeTime);
+        return this;
+    }
+
+    boolean hasCookie() {
+        return mCookies != null || (cookieMap != null && cookieMap.hasCookies());
+    }
+
     public OkHttpClient build() {
         if (context != null) {
             NetworkUtil.initNetwork(context);
@@ -491,21 +559,11 @@ public class OKHttpBuilder {
         }
         builder.interceptors().clear();
         builder.networkInterceptors().clear();
-        if (cookies != null && context != null) {
+        if (context != null && hasCookie()) {
             SharedPrefsCookiePersistor sharedPrefsCookiePersistor = new SharedPrefsCookiePersistor(context);
-            CookieJar cookieJar = new PersistentCookieJar(new SetCookieCache(), sharedPrefsCookiePersistor) {
-                @Override
-                public synchronized List<Cookie> loadForRequest(HttpUrl url) {
-                    final List<Cookie> validCookies = super.loadForRequest(url);
-                    for (CookieSave cookieSave : cookies) {
-                        final Cookie cookie = cookieSave.cookie;
-                        if (cookieSave.isAddCookie && cookie.matches(url)) {
-                            validCookies.add(cookie);
-                        }
-                    }
-                    return validCookies;
-                }
-            };
+            CookieCache cookieCache = new SetCookieCache();
+            saveCookie(cookieCache);
+            CookieJar cookieJar = new PersistentCookieJar(cookieCache, sharedPrefsCookiePersistor);
             builder.cookieJar(cookieJar);
         }
         if (certsData != null && !certsData.isEmpty()) {
@@ -603,5 +661,38 @@ public class OKHttpBuilder {
     @Override
     public OKHttpBuilder clone() {
         return new OKHttpBuilder(this);
+    }
+
+    void saveCookie(CookieCache cookieCache) {
+        final List<Cookie> cookies = new ArrayList<>();
+        if (this.mCookies != null && !this.mCookies.isEmpty()) {
+            for (CookieSave cookieSave : this.mCookies) {
+                final Cookie cookie = cookieSave.cookie;
+                if (cookieSave.isAddCookie) {
+                    cookies.add(cookie);
+                }
+            }
+        } else if (cookieMap != null && cookieMap.hasCookies()) {
+            String[] values = cookieMap.cookies;
+            int length = values.length;
+            for (int i = 0; i < length; ) {
+                final String domain = values[i];
+                final String path = values[i + 1];
+                final String name = values[i + 2];
+                final String value = values[i + 3];
+                final Cookie cookie = new Cookie.Builder()
+                        .hostOnlyDomain(domain)
+                        .path(path)
+                        .name(name)
+                        .value(value)
+                        .secure()
+                        .build();
+                if (cookieMap.isAddCookie) {
+                    cookies.add(cookie);
+                }
+                i += 4;
+            }
+        }
+        cookieCache.addAll(cookies);
     }
 }

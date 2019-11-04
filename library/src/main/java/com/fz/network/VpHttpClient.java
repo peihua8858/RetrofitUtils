@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import okhttp3.CookieJar;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -40,6 +41,10 @@ public class VpHttpClient {
 
     public void removeRetrofit(String url) {
         retrofits.remove(url);
+    }
+
+    public CookieJar getCookieJar() {
+        return okHttpClient != null ? okHttpClient.cookieJar() : null;
     }
 
     public void removeService(Class<?> clazz) {

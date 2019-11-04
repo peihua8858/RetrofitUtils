@@ -5,6 +5,8 @@ import com.fz.network.VpHttpClient;
 
 import java.util.HashMap;
 
+import okhttp3.CookieJar;
+
 /**
  * 基础的网络请求接口
  */
@@ -14,6 +16,10 @@ public class BasicDataManager {
     protected HashMap<String, Object> interIml = new HashMap<>();
 
     protected BasicDataManager() {
+    }
+
+    public CookieJar getCookieJar() {
+        return vpNewtWork != null ? vpNewtWork.getCookieJar() : null;
     }
 
     /**

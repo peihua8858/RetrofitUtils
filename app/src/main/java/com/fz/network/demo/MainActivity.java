@@ -52,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
         request.readTimeoutMillis(1000);
         request.writeTimeoutMillis(1000);
         request.setJsonParams(false);
+        request.setlifeTime(5000000);
         ApiManager.addressApi().getAddressLits(request.createRequestBody())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -71,10 +72,11 @@ public class MainActivity extends AppCompatActivity {
 
     void requestCmsData() {
         final RequestParam request = new RequestParam(false, true);
-        request.setJsonParams(false);
+        request.setJsonParams(true);
         request.connectTimeoutMillis(1000);
         request.readTimeoutMillis(1000);
         request.writeTimeoutMillis(1000);
+        request.setlifeTime(5000000);
         buildParams(request);
         ApiManager.cmsServiceApi().getMenuList(request.createRequestBody())
                 .map(MainActivity.<HttpResponse<List<MenuBean>>>handleFunction())

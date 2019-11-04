@@ -69,4 +69,16 @@ public interface IHttpCache {
     default String readCache(Request request) {
         return null;
     }
+
+    /**
+     * 缓存数据有效时间，单位毫秒，-1标识永久
+     *
+     * @return 返回缓存有效时间，单位毫秒
+     * @author dingpeihua
+     * @date 2019/11/4 10:40
+     * @version 1.0
+     */
+    default long getLifeTime() {
+        return -1;
+    }
 }

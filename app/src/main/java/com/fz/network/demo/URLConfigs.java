@@ -25,7 +25,7 @@ public class URLConfigs {
     public final static String API_HOST_URL;
 
 
-    public static final String URL_CMS_R_HOST = "https://cms.glosop.com/api/";
+    public static final String URL_CMS_R_HOST = "http://www.cms.com.release.php7.egomsl.com/api/";//"https://cms.glosop.com/api/";
     public static final String URL_CMS_HOST;
 
     /**

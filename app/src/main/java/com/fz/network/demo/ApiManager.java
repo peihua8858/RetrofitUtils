@@ -74,6 +74,8 @@ public class ApiManager extends BasicDataManager {
                         .connectTimeout(30000, TimeUnit.MILLISECONDS)
                         .readTimeout(30000, TimeUnit.MILLISECONDS)
                         .writeTimeout(30000, TimeUnit.MILLISECONDS)
+                        .addCookie(true,
+                                "app.zaful.com", "/", "staging", "true", "cms.glosop.com", "/")
                         .timeoutInterceptor()
                         .addInterceptor(new NetLoggingInterceptor(new NetLoggingInterceptor.OnDynamicParamCallback() {
                             @Override

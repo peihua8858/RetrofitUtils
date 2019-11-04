@@ -92,7 +92,7 @@ final class CacheUtil {
             // 得到一个md5的消息摘要
             MessageDigest alga = MessageDigest.getInstance("MD5");
             // 添加要进行计算摘要的信息
-            alga.update(info.getBytes("UTF-8"));
+            alga.update(info.getBytes(UTF_8));
             // 得到该摘要
             digesta = alga.digest();
         } catch (NoSuchAlgorithmException e) {
@@ -167,6 +167,36 @@ final class CacheUtil {
             return (Boolean) value;
         } else if (value instanceof String) {
             return "true".equalsIgnoreCase((String) value);
+        }
+        return defaultValue;
+    }
+
+    /**
+     * 将Object对象转成boolean类型
+     *
+     * @param value
+     * @return 如果value不能转成boolean，则默认false
+     */
+    public static long toLong(Object value) {
+        return toLong(value, 0L);
+    }
+
+    /**
+     * 将Object对象转成boolean类型
+     *
+     * @param value
+     * @return 如果value不能转成boolean，则默认defaultValue
+     */
+    public static long toLong(Object value, long defaultValue) {
+        if (value instanceof Long) {
+            return (Long) value;
+        } else if (value instanceof Number) {
+            return ((Number) value).longValue();
+        } else if (value instanceof String) {
+            try {
+                return Long.valueOf((String) value);
+            } catch (NumberFormatException ignored) {
+            }
         }
         return defaultValue;
     }

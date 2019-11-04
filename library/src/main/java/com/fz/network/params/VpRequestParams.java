@@ -118,6 +118,18 @@ public class VpRequestParams implements Serializable {
     }
 
     /**
+     * 设置缓存有效时间
+     *
+     * @author dingpeihua
+     * @date 2019/9/2 15:36
+     * @version 1.0
+     */
+    public final VpRequestParams setlifeTime(long lifeTime) {
+        put("lifeTime", lifeTime);
+        return this;
+    }
+
+    /**
      * Adds a key/value string pair to the request.
      *
      * @param key   the key name for the new param.
