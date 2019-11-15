@@ -122,7 +122,7 @@
 
 ```py
 dependencies {
-    implementation "com.fz.network:Network:1.1.5"
+    implementation "com.fz.network:Network:1.1.9"
     implementation "com.squareup.retrofit2:retrofit:2.5.0"
 }
 ```
