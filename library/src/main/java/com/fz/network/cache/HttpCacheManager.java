@@ -31,6 +31,7 @@ public final class HttpCacheManager {
     public static final MediaType MEDIA_TYPE = MediaType.parse("application/json; charset=utf-8");
     private IHttpCache iHttpCache;
     private long cacheLifeTime;
+
     static class CacheManagerHelper {
         final static HttpCacheManager CACHE_MANAGER = new HttpCacheManager();
     }
@@ -124,7 +125,7 @@ public final class HttpCacheManager {
         if (call == null) {
             return null;
         }
-        Response caCheResponse;
+        Response<T> caCheResponse;
         if ((caCheResponse = getHttpCache().get(call)) != null) {
             return caCheResponse;
         }
@@ -144,7 +145,7 @@ public final class HttpCacheManager {
                         .headers(request.headers())
                         .request(request)
                         .build();
-                Class<?> clazz = Class.forName("retrofit2.OkHttpCall");
+                Class<?> clazz = call.getClass();
                 Method method = clazz.getDeclaredMethod("parseResponse", okhttp3.Response.class);
                 method.setAccessible(true);
                 return (Response<T>) method.invoke(call, response);

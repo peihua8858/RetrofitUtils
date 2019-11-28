@@ -15,7 +15,7 @@
  */
 package com.fz.network.remote;
 
-import com.fz.network.VpHttpClient;
+import com.fz.network.RetrofitClient;
 import com.fz.network.gson.GsonBuilderFactory;
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
@@ -80,16 +80,12 @@ public final class GsonConverterFactory extends Converter.Factory {
     private final MediaType mediaType;
 
     private GsonConverterFactory(Gson gson) {
-        if (gson == null) {
-            throw new NullPointerException("gson == null");
-        }
-        this.gson = gson;
-        this.mediaType = VpHttpClient.FORM_TYPE;
+        this(gson, RetrofitClient.MEDIA_TYPE);
     }
 
     private GsonConverterFactory(Gson gson, MediaType mediaType) {
         if (gson == null) {
-            throw new NullPointerException("gson == null");
+            gson = GsonBuilderFactory.createDefaultBuild().create();
         }
         this.gson = gson;
         this.mediaType = mediaType;
@@ -98,6 +94,9 @@ public final class GsonConverterFactory extends Converter.Factory {
     @Override
     public Converter<ResponseBody, ?> responseBodyConverter(Type type, Annotation[] annotations,
                                                             Retrofit retrofit) {
+        if (type == String.class) {
+            return StringConverter.INSTANCE;
+        }
         TypeAdapter<?> adapter = gson.getAdapter(TypeToken.get(type));
         return new GsonResponseBodyConverter<>(gson, adapter);
     }
@@ -106,24 +105,32 @@ public final class GsonConverterFactory extends Converter.Factory {
     public Converter<?, RequestBody> requestBodyConverter(Type type,
                                                           Annotation[] parameterAnnotations, Annotation[] methodAnnotations, Retrofit retrofit) {
         TypeAdapter<?> adapter = gson.getAdapter(TypeToken.get(type));
-        return new GsonRequestBodyConverter<>(gson, adapter);
+        return new GsonRequestBodyConverter<>(gson, adapter, mediaType);
     }
 
+    /**
+     * http 响应String类型数据处理
+     *
+     * @author dingpeihua
+     * @version 1.0
+     * @date 2016/12/24 11:42
+     */
+    final static class StringConverter implements Converter<ResponseBody, String> {
+
+        public static final StringConverter INSTANCE = new StringConverter();
+
+        @Override
+        public String convert(ResponseBody value) throws IOException {
+            return value.string();
+        }
+    }
 
     static final class GsonRequestBodyConverter<T> implements Converter<T, RequestBody> {
-        private static final MediaType MEDIA_TYPE = VpHttpClient.FORM_TYPE;
         private static final Charset UTF_8 = Charset.forName("UTF-8");
 
         private final Gson gson;
         private final TypeAdapter<T> adapter;
         private final MediaType mediaType;
-
-
-        GsonRequestBodyConverter(Gson gson, TypeAdapter<T> adapter) {
-            this.gson = gson;
-            this.adapter = adapter;
-            this.mediaType = MEDIA_TYPE;
-        }
 
         GsonRequestBodyConverter(Gson gson, TypeAdapter<T> adapter, MediaType mediaType) {
             this.gson = gson;

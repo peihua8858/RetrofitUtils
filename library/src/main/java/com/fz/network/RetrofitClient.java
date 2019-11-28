@@ -8,13 +8,9 @@ import com.fz.network.remote.GsonConverterFactory;
 
 import java.lang.reflect.Type;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import okhttp3.CookieJar;
-import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
@@ -22,33 +18,52 @@ import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 
 /**
  * https retrofit 构建，解决多域名需要创建多个实例的问题
+ *
+ * @author dingpeihua
+ * @version 1.0
+ * @date 2019/11/22 16:31
  */
-public class VpHttpClient {
-    public static final MediaType JSON_TYPE = MediaType.parse("application/json; charset=utf-8");
-    public static final MediaType FORM_TYPE = MediaType.parse("application/x-www-form-urlencoded;charset=UTF-8");
-    public static final String BASE_URL = "https://httpbin.org/";
-    private OkHttpClient okHttpClient;
-    private Retrofit mRetrofit;
+public class RetrofitClient {
+    public static final MediaType MEDIA_TYPE = MediaType.parse("application/json; charset=utf-8");
+    private final OkHttpClient okHttpClient;
+    private final HashMap<Class<?>, Object> services;
+    private final HashMap<String, Retrofit> retrofits;
     private String mBaseUrl;
-    private List<Interceptor> interceptors;
-    private HashMap<Class<?>, Object> services;
-    private HashMap<String, Retrofit> retrofits;
 
-    private VpHttpClient() {
+    private RetrofitClient(OkHttpClient okHttpClient) {
+        this.okHttpClient = okHttpClient;
         services = new HashMap<>();
         retrofits = new HashMap<>();
+    }
+
+    public RetrofitClient(Builder builder) {
+        this(builder.httpClient);
+        this.mBaseUrl = builder.baseUrl;
     }
 
     public void removeRetrofit(String url) {
         retrofits.remove(url);
     }
 
+    public void removeService(Class<?> clazz) {
+        services.remove(clazz);
+    }
+
+    public void removeAllRetrofit() {
+        retrofits.clear();
+    }
+
+    public void removeAllService() {
+        services.clear();
+    }
+
     public CookieJar getCookieJar() {
         return okHttpClient != null ? okHttpClient.cookieJar() : null;
     }
 
-    public void removeService(Class<?> clazz) {
-        services.remove(clazz);
+    public RetrofitClient setBaseUrl(String mBaseUrl) {
+        this.mBaseUrl = mBaseUrl;
+        return this;
     }
 
     /**
@@ -79,7 +94,7 @@ public class VpHttpClient {
      */
     public <T> T createRetrofit(String host, OkHttpClient okHttpClient, Class<T> clazz, MediaType mediaType, Map<Type, Object> typeAdapters) {
         if (services.containsKey(clazz)) {
-            return (T) services.get(clazz);
+            return clazz.cast(services.get(clazz));
         }
         Retrofit retrofit;
         if (retrofits.containsKey(host)) {
@@ -117,9 +132,9 @@ public class VpHttpClient {
      * @date 2019/1/11 15:26
      * @version 1.0
      */
-    Retrofit createRetrofit(String host, OkHttpClient okHttpClient, MediaType mediaType, Map<Type, Object> typeAdapters) {
+    private Retrofit createRetrofit(String host, OkHttpClient okHttpClient, MediaType mediaType, Map<Type, Object> typeAdapters) {
         if (TextUtils.isEmpty(host)) {
-            host = BASE_URL;
+            host = mBaseUrl;
         }
         return new Retrofit.Builder()
                 .baseUrl(host)
@@ -127,10 +142,6 @@ public class VpHttpClient {
                 .addConverterFactory(GsonConverterFactory.create(GsonBuilderFactory.createBuild(typeAdapters), mediaType))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build();
-    }
-
-    private Retrofit getRetrofit() {
-        return createRetrofit(mBaseUrl, JSON_TYPE, null, null);
     }
 
     /**
@@ -163,7 +174,7 @@ public class VpHttpClient {
      * @return
      */
     public <T> T createRetrofit(String host, Class<T> clazz, Type type, Object typeAdapter) {
-        return createRetrofit(host, clazz, JSON_TYPE, type, typeAdapter);
+        return createRetrofit(host, clazz, MEDIA_TYPE, type, typeAdapter);
     }
 
     /**
@@ -174,41 +185,19 @@ public class VpHttpClient {
      * @return
      */
     public <T> T createRetrofit(String host, Class<T> clazz) {
-        return createRetrofit(host, clazz, JSON_TYPE);
-    }
-
-    /**
-     * okhttp clicent
-     *
-     * @return
-     */
-    public synchronized OkHttpClient getOkHttpClient() {
-        if (okHttpClient == null) {
-            OkHttpClient.Builder builder = new OkHttpClient.Builder();
-            if (interceptors != null) {
-                for (Interceptor interceptor : interceptors) {
-                    builder.addInterceptor(interceptor);
-                }
-            }
-            okHttpClient = builder
-                    .connectTimeout(15, TimeUnit.SECONDS)
-                    .readTimeout(15, TimeUnit.SECONDS)
-                    .writeTimeout(15, TimeUnit.SECONDS)
-                    .build();
-        }
-        return okHttpClient;
+        return createRetrofit(host, clazz, MEDIA_TYPE);
     }
 
     /**
      * 创建API 服务代理对象
      *
-     * @param vpHttpClient
+     * @param client
      * @author dingpeihua
      * @date 2019/6/13 11:22
      * @version 1.0
      */
-    public static ServiceBuilder createService(VpHttpClient vpHttpClient) {
-        return new ServiceBuilder(vpHttpClient);
+    public static <T> ServiceBuilder<T> createService(RetrofitClient client, Class<T> val) {
+        return new ServiceBuilder<>(client, val);
     }
 
     /**
@@ -218,94 +207,82 @@ public class VpHttpClient {
      * @version 1.0
      * @date 2019/6/13 11:22
      */
-    public static final class ServiceBuilder {
-        private final VpHttpClient httpClient;
+    public static final class ServiceBuilder<T> {
+        private final RetrofitClient httpClient;
         private OkHttpClient okHttpClient;
         private String host;
         private MediaType mediaType;
-        private Class<?> service;
+        private Class<T> service;
         private HashMap<Type, Object> typeAdapters = new HashMap<>();
 
-        public ServiceBuilder(VpHttpClient vpHttpClient) {
+        public ServiceBuilder(RetrofitClient vpHttpClient, Class<T> val) {
             this.httpClient = vpHttpClient;
+            service = val;
         }
 
-        public ServiceBuilder setHttpClient(OkHttpClient val) {
+        public ServiceBuilder<T> setHttpClient(OkHttpClient val) {
             okHttpClient = val;
             return this;
         }
 
-        public ServiceBuilder setHost(String val) {
+        public ServiceBuilder<T> setHttpClient(HttpClient val) {
+            okHttpClient = val.build();
+            return this;
+        }
+
+        public ServiceBuilder<T> setHost(String val) {
             host = val;
             return this;
         }
 
-        public ServiceBuilder setMediaType(MediaType val) {
+        public ServiceBuilder<T> setMediaType(MediaType val) {
             mediaType = val;
             return this;
         }
 
-        public <T> ServiceBuilder setService(Class<T> val) {
+        public ServiceBuilder<T> setService(Class<T> val) {
             service = val;
             return this;
         }
 
-        public ServiceBuilder setTypeAdapter(Type val1, Object val2) {
+        public ServiceBuilder<T> setTypeAdapter(Type val1, Object val2) {
             typeAdapters.put(val1, val2);
             return this;
         }
 
-        public <T> T build() {
-            return (T) httpClient.createRetrofit(host, okHttpClient, service, mediaType, typeAdapters);
+        public T build() {
+            return service.cast(httpClient.createRetrofit(host, okHttpClient, service, mediaType, typeAdapters));
         }
     }
 
-    /**
-     * 构建builder
-     */
+    public static Builder newBuilder() {
+        return new Builder();
+    }
+
     public static class Builder {
-        VpHttpClient netWorkFactory;
+        OkHttpClient httpClient;
+        private String baseUrl;
 
         public Builder() {
-            netWorkFactory = new VpHttpClient();
         }
 
-        public Builder addBaseUrl(String url) {
-            netWorkFactory.mBaseUrl = url;
+        public Builder setHttpClient(OkHttpClient httpClient) {
+            this.httpClient = httpClient;
             return this;
         }
 
-        public Builder addInterceptor(Interceptor interceptor) {
-            if (netWorkFactory.interceptors == null) {
-                netWorkFactory.interceptors = new LinkedList<>();
-            }
-            netWorkFactory.interceptors.add(interceptor);
+        public Builder setHttpClient(HttpClient httpClient) {
+            this.httpClient = httpClient.build();
             return this;
         }
 
-        public Builder addOkHttpClient(OkHttpClient okHttpClient) {
-            if (okHttpClient == null) {
-                throw new IllegalArgumentException("okHttpClient is null !");
-            }
-            netWorkFactory.okHttpClient = okHttpClient;
+        public Builder setBaseUrl(String baseUrl) {
+            this.baseUrl = baseUrl;
             return this;
         }
 
-        public Builder addRetrofit(Retrofit retrofit) {
-            netWorkFactory.mRetrofit = retrofit;
-            return this;
-        }
-
-
-        public VpHttpClient build() {
-            if (netWorkFactory.okHttpClient == null) {
-                netWorkFactory.okHttpClient = netWorkFactory.getOkHttpClient();
-            }
-            if (netWorkFactory.mRetrofit == null) {
-                Retrofit retrofit = netWorkFactory.getRetrofit();
-                netWorkFactory.mRetrofit = retrofit;
-            }
-            return netWorkFactory;
+        public RetrofitClient build() {
+            return new RetrofitClient(this);
         }
     }
 }

@@ -37,7 +37,7 @@ public final class NetworkUtil {
     }
 
     private NetworkUtil() {
-
+        throw new UnsupportedOperationException("Not support!");
     }
 
     /**

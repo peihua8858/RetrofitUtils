@@ -13,7 +13,6 @@ package com.fz.network.cache;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.os.Build;
 import android.text.TextUtils;
 
 import androidx.core.content.pm.PackageInfoCompat;
@@ -26,7 +25,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
 
 /**
  * 缓存管理
@@ -113,6 +111,7 @@ public class CacheManager {
      */
     public synchronized void putCache(String key, String value, long lifeTime) {
         if (mDiskLruCache == null) {
+            KLog.e("DiskLruCache not initialized!");
             return;
         }
         OutputStream os = null;
@@ -149,6 +148,7 @@ public class CacheManager {
      */
     public String getCache(String key) {
         if (mDiskLruCache == null) {
+            KLog.e("DiskLruCache not initialized!");
             return null;
         }
         FileInputStream fis = null;
@@ -159,7 +159,7 @@ public class CacheManager {
             if (snapshot != null) {
                 fis = (FileInputStream) snapshot.getInputStream(DISK_CACHE_INDEX);
                 long lifeTime = Long.valueOf(snapshot.getString(LIFT_TIME_INDEX));
-                if (lifeTime == -1L || System.currentTimeMillis() < lifeTime) {
+                if (lifeTime == DEFAULT_LIFE_TIME || System.currentTimeMillis() < lifeTime) {
                     bos = new ByteArrayOutputStream();
                     byte[] buf = new byte[1024];
                     int len;

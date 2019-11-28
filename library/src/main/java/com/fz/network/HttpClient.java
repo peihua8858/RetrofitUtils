@@ -21,9 +21,10 @@ import com.franmontiel.persistentcookiejar.persistence.SharedPrefsCookiePersisto
 import com.fz.network.cache.CacheManager;
 import com.fz.network.cache.HttpCacheManager;
 import com.fz.network.cache.IHttpCache;
-import com.fz.network.interceptor.NetLoggingInterceptor;
 import com.fz.network.interceptor.TimeoutInterceptor;
 import com.fz.network.utils.NetworkUtil;
+import com.fz.networklog.HttpLoggingInterceptor;
+import com.fz.networklog.NetLoggingInterceptor;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -57,16 +58,15 @@ import okhttp3.CookieJar;
 import okhttp3.Dispatcher;
 import okhttp3.Dns;
 import okhttp3.EventListener;
-import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
-import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
-import okhttp3.logging.HttpLoggingInterceptor;
 
 /**
- * Created by dingpeihua on 2017/12/5.
+ * @author dingpeihua
+ * @version 1.0
+ * @date 2019/11/22 15:11
  */
-public class OKHttpBuilder {
+public class HttpClient {
 
     static class CookieSave {
         boolean isAddCookie;
@@ -94,7 +94,7 @@ public class OKHttpBuilder {
 
     Context context;
     private static final long defaultTimeout = 20_000;
-    private final OkHttpClient.Builder builder;
+    private final okhttp3.OkHttpClient.Builder builder;
     private List<CookieSave> mCookies = new ArrayList<>();
     final List<Interceptor> networkInterceptors = new ArrayList<>();
     private List<Interceptor> interceptors = new ArrayList<>();
@@ -106,19 +106,19 @@ public class OKHttpBuilder {
     private String cachePath;
     private CookieMap cookieMap;
 
-    private OKHttpBuilder(Context context, OkHttpClient.Builder builder) {
+    public HttpClient(Context context, okhttp3.OkHttpClient.Builder builder) {
         this.context = context;
         this.builder = builder;
     }
 
-    public static OKHttpBuilder newBuilder(Context context) {
+    public static HttpClient newBuilder(Context context) {
         if (context == null) {
             throw new NullPointerException("context == null");
         }
-        return new OKHttpBuilder(context.getApplicationContext(), new OkHttpClient().newBuilder());
+        return new HttpClient(context.getApplicationContext(), new okhttp3.OkHttpClient().newBuilder());
     }
 
-    private OKHttpBuilder(OKHttpBuilder other) {
+    private HttpClient(HttpClient other) {
         this.context = other.context;
         this.builder = other.builder;
         this.mCookies = other.mCookies;
@@ -127,24 +127,27 @@ public class OKHttpBuilder {
         this.isEnabledHttpLog = other.isEnabledHttpLog;
         this.securityInterceptor = other.securityInterceptor;
         this.responseCacheInterceptor = other.responseCacheInterceptor;
+        this.netLogInterceptor = other.netLogInterceptor;
+        this.cachePath = other.cachePath;
+        this.cookieMap = other.cookieMap;
     }
 
-    public OKHttpBuilder addCookie(boolean isAddCookie, Cookie cookie) {
+    public HttpClient addCookie(boolean isAddCookie, Cookie cookie) {
         if (cookie != null) {
             this.mCookies.add(new CookieSave(isAddCookie, cookie));
         }
         return this;
     }
 
-    public OKHttpBuilder addCookie(Cookie cookie) {
+    public HttpClient addCookie(Cookie cookie) {
         return addCookie(true, cookie);
     }
 
-    public OKHttpBuilder addCookie(Cookie... cookies) {
+    public HttpClient addCookie(Cookie... cookies) {
         return addCookie(true, cookies);
     }
 
-    public OKHttpBuilder addCookie(boolean isAddCookie, Cookie... cookies) {
+    public HttpClient addCookie(boolean isAddCookie, Cookie... cookies) {
         if (cookies != null && cookies.length > 0) {
             for (Cookie cookie : cookies) {
                 addCookie(isAddCookie, cookie);
@@ -153,11 +156,11 @@ public class OKHttpBuilder {
         return this;
     }
 
-    public OKHttpBuilder addCookie(List<Cookie> cookies) {
+    public HttpClient addCookie(List<Cookie> cookies) {
         return addCookie(true, cookies);
     }
 
-    public OKHttpBuilder addCookie(boolean isAddCookie, List<Cookie> cookies) {
+    public HttpClient addCookie(boolean isAddCookie, List<Cookie> cookies) {
         if (cookies != null && cookies.size() > 0) {
             for (Cookie cookie : cookies) {
                 addCookie(isAddCookie, cookie);
@@ -166,31 +169,31 @@ public class OKHttpBuilder {
         return this;
     }
 
-    public OKHttpBuilder addCookie(boolean isAddCookie, String... cookies) {
+    public HttpClient addCookie(boolean isAddCookie, String... cookies) {
         if (cookies != null && cookies.length % 4 == 0) {
             cookieMap = new CookieMap(isAddCookie, cookies);
         }
         return this;
     }
 
-    public OKHttpBuilder setCertsData(List<byte[]> certs_data) {
+    public HttpClient setCertsData(List<byte[]> certs_data) {
         this.certsData = certs_data;
         return this;
     }
 
-    public OKHttpBuilder setEnabledHttpLog(boolean enabledHttpLog) {
+    public HttpClient setEnabledHttpLog(boolean enabledHttpLog) {
         isEnabledHttpLog = enabledHttpLog;
         return this;
     }
 
-    public OKHttpBuilder addInterceptor(Interceptor... interceptor) {
+    public HttpClient addInterceptor(Interceptor... interceptor) {
         if (interceptor != null) {
             this.interceptors.addAll(new ArrayList<>(Arrays.asList(interceptor)));
         }
         return this;
     }
 
-    public OKHttpBuilder addInterceptor(Interceptor interceptor) {
+    public HttpClient addInterceptor(Interceptor interceptor) {
         if (interceptor instanceof NetLoggingInterceptor) {
             netLogInterceptor = interceptor;
         } else if (interceptor != null) {
@@ -199,19 +202,19 @@ public class OKHttpBuilder {
         return this;
     }
 
-    public OKHttpBuilder addNetworkInterceptor(Interceptor interceptor) {
+    public HttpClient addNetworkInterceptor(Interceptor interceptor) {
         if (interceptor != null) {
             networkInterceptors.add(interceptor);
         }
         return this;
     }
 
-    public OKHttpBuilder securityInterceptor(Interceptor interceptor) {
+    public HttpClient securityInterceptor(Interceptor interceptor) {
         securityInterceptor = interceptor;
         return this;
     }
 
-    public OKHttpBuilder responseCacheInterceptor(Interceptor interceptor) {
+    public HttpClient responseCacheInterceptor(Interceptor interceptor) {
         responseCacheInterceptor = interceptor;
         return this;
     }
@@ -224,7 +227,7 @@ public class OKHttpBuilder {
      * @date 2019/8/30 17:10
      * @version 1.0
      */
-    public OKHttpBuilder timeoutInterceptor(Interceptor interceptor) {
+    public HttpClient timeoutInterceptor(Interceptor interceptor) {
         interceptors.add(interceptor);
         return this;
     }
@@ -237,7 +240,7 @@ public class OKHttpBuilder {
      * @date 2019/8/30 17:10
      * @version 1.0
      */
-    public OKHttpBuilder timeoutInterceptor() {
+    public HttpClient timeoutInterceptor() {
         return timeoutInterceptor(new TimeoutInterceptor());
     }
 
@@ -249,47 +252,47 @@ public class OKHttpBuilder {
      * @date 2019/9/2 18:02
      * @version 1.0
      */
-    public OKHttpBuilder netLogInterceptor(NetLoggingInterceptor.OnDynamicParamCallback callback) {
+    public HttpClient netLogInterceptor(NetLoggingInterceptor.OnDynamicParamCallback callback) {
         netLogInterceptor = new NetLoggingInterceptor(callback);
         return this;
     }
 
     /**
-     * @see {@link OkHttpClient.Builder#connectTimeout(long, TimeUnit)}
+     * @see {@link okhttp3.OkHttpClient.Builder#connectTimeout(long, TimeUnit)}
      */
-    public OKHttpBuilder connectTimeout(long timeout, TimeUnit unit) {
+    public HttpClient connectTimeout(long timeout, TimeUnit unit) {
         builder.connectTimeout(timeout > 0 ? timeout : defaultTimeout, unit);
         return this;
     }
 
     /**
-     * @see {@link OkHttpClient.Builder#readTimeout(long, TimeUnit)}
+     * @see {@link okhttp3.OkHttpClient.Builder#readTimeout(long, TimeUnit)}
      */
-    public OKHttpBuilder readTimeout(long timeout, TimeUnit unit) {
+    public HttpClient readTimeout(long timeout, TimeUnit unit) {
         builder.readTimeout(timeout > 0 ? timeout : defaultTimeout, unit);
         return this;
     }
 
     /**
-     * @see {@link OkHttpClient.Builder#writeTimeout(long, TimeUnit)}
+     * @see {@link okhttp3.OkHttpClient.Builder#writeTimeout(long, TimeUnit)}
      */
-    public OKHttpBuilder writeTimeout(long timeout, TimeUnit unit) {
+    public HttpClient writeTimeout(long timeout, TimeUnit unit) {
         builder.writeTimeout(timeout > 0 ? timeout : defaultTimeout, unit);
         return this;
     }
 
     /**
-     * @see {@link OkHttpClient.Builder#pingInterval(long, TimeUnit)}
+     * @see {@link okhttp3.OkHttpClient.Builder#pingInterval(long, TimeUnit)}
      */
-    public OKHttpBuilder pingInterval(long interval, TimeUnit unit) {
+    public HttpClient pingInterval(long interval, TimeUnit unit) {
         builder.pingInterval(interval, unit);
         return this;
     }
 
     /**
-     * @see {@link OkHttpClient.Builder#proxy(Proxy)}
+     * @see {@link okhttp3.OkHttpClient.Builder#proxy(Proxy)}
      */
-    public OKHttpBuilder proxy(@Nullable Proxy proxy) {
+    public HttpClient proxy(@Nullable Proxy proxy) {
         if (proxy != null) {
             builder.proxy(proxy);
         }
@@ -297,9 +300,9 @@ public class OKHttpBuilder {
     }
 
     /**
-     * @see {@link OkHttpClient.Builder#proxySelector(ProxySelector)}
+     * @see {@link okhttp3.OkHttpClient.Builder#proxySelector(ProxySelector)}
      */
-    public OKHttpBuilder proxySelector(ProxySelector proxySelector) {
+    public HttpClient proxySelector(ProxySelector proxySelector) {
         if (proxySelector != null) {
             builder.proxySelector(proxySelector);
         }
@@ -307,9 +310,9 @@ public class OKHttpBuilder {
     }
 
     /**
-     * @see {@link OkHttpClient.Builder#cookieJar(CookieJar)}
+     * @see {@link okhttp3.OkHttpClient.Builder#cookieJar(CookieJar)}
      */
-    public OKHttpBuilder cookieJar(CookieJar cookieJar) {
+    public HttpClient cookieJar(CookieJar cookieJar) {
         if (cookieJar != null) {
             builder.cookieJar(cookieJar);
         }
@@ -317,9 +320,9 @@ public class OKHttpBuilder {
     }
 
     /**
-     * @see {@link OkHttpClient.Builder#cache(Cache)}
+     * @see {@link okhttp3.OkHttpClient.Builder#cache(Cache)}
      */
-    public OKHttpBuilder cache(@Nullable Cache cache) {
+    public HttpClient cache(@Nullable Cache cache) {
         if (cache != null) {
             builder.cache(cache);
         }
@@ -327,9 +330,9 @@ public class OKHttpBuilder {
     }
 
     /**
-     * @see {@link OkHttpClient.Builder#dns(Dns)}
+     * @see {@link okhttp3.OkHttpClient.Builder#dns(Dns)}
      */
-    public OKHttpBuilder dns(Dns dns) {
+    public HttpClient dns(Dns dns) {
         if (dns != null) {
             builder.dns(dns);
         }
@@ -337,9 +340,9 @@ public class OKHttpBuilder {
     }
 
     /**
-     * @see {@link OkHttpClient.Builder#socketFactory(SocketFactory)}
+     * @see {@link okhttp3.OkHttpClient.Builder#socketFactory(SocketFactory)}
      */
-    public OKHttpBuilder socketFactory(SocketFactory socketFactory) {
+    public HttpClient socketFactory(SocketFactory socketFactory) {
         if (socketFactory != null) {
             builder.socketFactory(socketFactory);
         }
@@ -347,9 +350,9 @@ public class OKHttpBuilder {
     }
 
     /**
-     * @see {@link OkHttpClient.Builder#sslSocketFactory(SSLSocketFactory)}
+     * @see {@link okhttp3.OkHttpClient.Builder#sslSocketFactory(SSLSocketFactory)}
      */
-    public OKHttpBuilder sslSocketFactory(SSLSocketFactory sslSocketFactory) {
+    public HttpClient sslSocketFactory(SSLSocketFactory sslSocketFactory) {
         if (sslSocketFactory != null) {
             builder.sslSocketFactory(sslSocketFactory);
         }
@@ -358,9 +361,9 @@ public class OKHttpBuilder {
 
 
     /**
-     * @see {@link OkHttpClient.Builder#sslSocketFactory(SSLSocketFactory, X509TrustManager)}
+     * @see {@link okhttp3.OkHttpClient.Builder#sslSocketFactory(SSLSocketFactory, X509TrustManager)}
      */
-    public OKHttpBuilder sslSocketFactory(SSLSocketFactory sslSocketFactory, X509TrustManager trustManager) {
+    public HttpClient sslSocketFactory(SSLSocketFactory sslSocketFactory, X509TrustManager trustManager) {
         if (sslSocketFactory != null && trustManager != null) {
             builder.sslSocketFactory(sslSocketFactory, trustManager);
         }
@@ -368,9 +371,9 @@ public class OKHttpBuilder {
     }
 
     /**
-     * @see {@link OkHttpClient.Builder#hostnameVerifier(HostnameVerifier)}
+     * @see {@link okhttp3.OkHttpClient.Builder#hostnameVerifier(HostnameVerifier)}
      */
-    public OKHttpBuilder hostnameVerifier(HostnameVerifier hostnameVerifier) {
+    public HttpClient hostnameVerifier(HostnameVerifier hostnameVerifier) {
         if (hostnameVerifier != null) {
             builder.hostnameVerifier(hostnameVerifier);
         }
@@ -378,9 +381,9 @@ public class OKHttpBuilder {
     }
 
     /**
-     * @see {@link OkHttpClient.Builder#certificatePinner(CertificatePinner)}
+     * @see {@link okhttp3.OkHttpClient.Builder#certificatePinner(CertificatePinner)}
      */
-    public OKHttpBuilder certificatePinner(CertificatePinner certificatePinner) {
+    public HttpClient certificatePinner(CertificatePinner certificatePinner) {
         if (certificatePinner != null) {
             builder.certificatePinner(certificatePinner);
         }
@@ -388,17 +391,17 @@ public class OKHttpBuilder {
     }
 
     /**
-     * @see {@link OkHttpClient.Builder#authenticator(Authenticator)}
+     * @see {@link okhttp3.OkHttpClient.Builder#authenticator(Authenticator)}
      */
-    public OKHttpBuilder authenticator(Authenticator authenticator) {
+    public HttpClient authenticator(Authenticator authenticator) {
         builder.authenticator(authenticator);
         return this;
     }
 
     /**
-     * @see {@link OkHttpClient.Builder#proxyAuthenticator(Authenticator)}
+     * @see {@link okhttp3.OkHttpClient.Builder#proxyAuthenticator(Authenticator)}
      */
-    public OKHttpBuilder proxyAuthenticator(Authenticator proxyAuthenticator) {
+    public HttpClient proxyAuthenticator(Authenticator proxyAuthenticator) {
         if (proxyAuthenticator != null) {
             builder.proxyAuthenticator(proxyAuthenticator);
         }
@@ -406,9 +409,9 @@ public class OKHttpBuilder {
     }
 
     /**
-     * @see {@link OkHttpClient.Builder#connectionPool(ConnectionPool)}
+     * @see {@link okhttp3.OkHttpClient.Builder#connectionPool(ConnectionPool)}
      */
-    public OKHttpBuilder connectionPool(ConnectionPool connectionPool) {
+    public HttpClient connectionPool(ConnectionPool connectionPool) {
         if (connectionPool != null) {
             builder.connectionPool(connectionPool);
         }
@@ -416,33 +419,33 @@ public class OKHttpBuilder {
     }
 
     /**
-     * @see {@link OkHttpClient.Builder#followRedirects(boolean)}
+     * @see {@link okhttp3.OkHttpClient.Builder#followRedirects(boolean)}
      */
-    public OKHttpBuilder followSslRedirects(boolean followProtocolRedirects) {
+    public HttpClient followSslRedirects(boolean followProtocolRedirects) {
         builder.followSslRedirects(followProtocolRedirects);
         return this;
     }
 
     /**
-     * @see {@link OkHttpClient.Builder#followRedirects(boolean)}
+     * @see {@link okhttp3.OkHttpClient.Builder#followRedirects(boolean)}
      */
-    public OKHttpBuilder followRedirects(boolean followRedirects) {
+    public HttpClient followRedirects(boolean followRedirects) {
         builder.followRedirects(followRedirects);
         return this;
     }
 
     /**
-     * @see {@link OkHttpClient.Builder#retryOnConnectionFailure(boolean)}
+     * @see {@link okhttp3.OkHttpClient.Builder#retryOnConnectionFailure(boolean)}
      */
-    public OKHttpBuilder retryOnConnectionFailure(boolean retryOnConnectionFailure) {
+    public HttpClient retryOnConnectionFailure(boolean retryOnConnectionFailure) {
         builder.retryOnConnectionFailure(retryOnConnectionFailure);
         return this;
     }
 
     /**
-     * @see {@link OkHttpClient.Builder#dispatcher(Dispatcher)}
+     * @see {@link okhttp3.OkHttpClient.Builder#dispatcher(Dispatcher)}
      */
-    public OKHttpBuilder dispatcher(Dispatcher dispatcher) {
+    public HttpClient dispatcher(Dispatcher dispatcher) {
         if (dispatcher != null) {
             builder.dispatcher(dispatcher);
         }
@@ -450,9 +453,9 @@ public class OKHttpBuilder {
     }
 
     /**
-     * @see {@link OkHttpClient.Builder#protocols(List)}
+     * @see {@link okhttp3.OkHttpClient.Builder#protocols(List)}
      */
-    public OKHttpBuilder protocols(List<Protocol> protocols) {
+    public HttpClient protocols(List<Protocol> protocols) {
         if (protocols != null) {
             builder.protocols(protocols);
         }
@@ -462,9 +465,9 @@ public class OKHttpBuilder {
     /**
      * @param connectionSpecs
      * @return
-     * @see {@link OkHttpClient.Builder#connectionSpecs(List)}
+     * @see {@link okhttp3.OkHttpClient.Builder#connectionSpecs(List)}
      */
-    public OKHttpBuilder connectionSpecs(List<ConnectionSpec> connectionSpecs) {
+    public HttpClient connectionSpecs(List<ConnectionSpec> connectionSpecs) {
         if (connectionSpecs != null) {
             builder.connectionSpecs(connectionSpecs);
         }
@@ -474,9 +477,9 @@ public class OKHttpBuilder {
     /**
      * @param eventListener
      * @return
-     * @see {@link OkHttpClient.Builder#eventListener(EventListener)}
+     * @see {@link okhttp3.OkHttpClient.Builder#eventListener(EventListener)}
      */
-    public OKHttpBuilder eventListener(EventListener eventListener) {
+    public HttpClient eventListener(EventListener eventListener) {
         if (eventListener != null) {
             builder.eventListener(eventListener);
         }
@@ -486,9 +489,9 @@ public class OKHttpBuilder {
     /**
      * @param eventListenerFactory
      * @return
-     * @see {@link OkHttpClient.Builder#eventListenerFactory(EventListener.Factory)}
+     * @see {@link okhttp3.OkHttpClient.Builder#eventListenerFactory(EventListener.Factory)}
      */
-    public OKHttpBuilder eventListenerFactory(EventListener.Factory eventListenerFactory) {
+    public HttpClient eventListenerFactory(EventListener.Factory eventListenerFactory) {
         if (eventListenerFactory != null) {
             builder.eventListenerFactory(eventListenerFactory);
         }
@@ -508,7 +511,7 @@ public class OKHttpBuilder {
      * @date 2019/10/26 9:35
      * @version 1.0
      */
-    public OKHttpBuilder setHttpCache(IHttpCache iHttpCache) {
+    public HttpClient setHttpCache(IHttpCache iHttpCache) {
         if (iHttpCache != null) {
             HttpCacheManager.instance().setHttpCache(iHttpCache);
         }
@@ -528,7 +531,7 @@ public class OKHttpBuilder {
      * @date 2019/10/26 9:53
      * @version 1.0
      */
-    public OKHttpBuilder setCachePath(String cachePath) {
+    public HttpClient setCachePath(String cachePath) {
         this.cachePath = cachePath;
         return this;
     }
@@ -543,7 +546,7 @@ public class OKHttpBuilder {
      * @date 2019/11/4 10:50
      * @version 1.0
      */
-    public OKHttpBuilder setCacheValidTime(long lifeTime) {
+    public HttpClient setCacheValidTime(long lifeTime) {
         HttpCacheManager.instance().setCacheLifeTime(lifeTime);
         return this;
     }
@@ -552,7 +555,7 @@ public class OKHttpBuilder {
         return mCookies != null || (cookieMap != null && cookieMap.hasCookies());
     }
 
-    public OkHttpClient build() {
+    public okhttp3.OkHttpClient build() {
         if (context != null) {
             NetworkUtil.initNetwork(context);
             CacheManager.initCacheManager(context, cachePath);
@@ -659,8 +662,8 @@ public class OKHttpBuilder {
     }
 
     @Override
-    public OKHttpBuilder clone() {
-        return new OKHttpBuilder(this);
+    public HttpClient clone() {
+        return new HttpClient(this);
     }
 
     void saveCookie(CookieCache cookieCache) {
