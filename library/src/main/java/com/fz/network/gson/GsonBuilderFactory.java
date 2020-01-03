@@ -9,12 +9,12 @@ import com.google.gson.JsonSerializer;
 import com.google.gson.TypeAdapter;
 import com.google.gson.internal.ConstructorConstructor;
 import com.google.gson.internal.Excluder;
+import com.google.gson.internal.bind.MapTypeAdapterFactory;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * add by tanping
@@ -46,8 +46,8 @@ public class GsonBuilderFactory {
                 jsonAdapterFactory);
         //Object
         gsonBuilder.registerTypeAdapterFactory(rta);
-
         gsonBuilder.registerTypeAdapterFactory(new CollectionTypeAdapterFactory(new ConstructorConstructor(Collections.<Type, InstanceCreator<?>>emptyMap())));
+        gsonBuilder.registerTypeAdapterFactory(new MapTypeAdapterFactory(new ConstructorConstructor(Collections.<Type, InstanceCreator<?>>emptyMap()), false));
 
         //注入 8大基本类型 type adapter
         gsonBuilder.registerTypeAdapter(Double.class, DOUBLE);

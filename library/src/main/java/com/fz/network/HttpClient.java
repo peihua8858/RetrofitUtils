@@ -169,6 +169,20 @@ public class HttpClient {
         return this;
     }
 
+    /**
+     * 设置cookie，默认secure为true，即默认必须是https
+     * 如果非https 可使用{@link #addCookie(Cookie)}或者{@link #addCookie(Cookie...)}
+     *
+     * @param isAddCookie true则添加cookie，否则不添加
+     * @param cookies     长度必须是4的倍数：
+     *                    cookies[i] :domain
+     *                    cookies[i + 1] :path
+     *                    cookies[i + 2] :name
+     *                    cookies[i + 3]  :value
+     * @author dingpeihua
+     * @date 2020/1/3 11:15
+     * @version 1.0
+     */
     public HttpClient addCookie(boolean isAddCookie, String... cookies) {
         if (cookies != null && cookies.length % 4 == 0) {
             cookieMap = new CookieMap(isAddCookie, cookies);
@@ -675,7 +689,8 @@ public class HttpClient {
                     cookies.add(cookie);
                 }
             }
-        } else if (cookieMap != null && cookieMap.hasCookies()) {
+        }
+        if (cookieMap != null && cookieMap.hasCookies()) {
             String[] values = cookieMap.cookies;
             int length = values.length;
             for (int i = 0; i < length; ) {
