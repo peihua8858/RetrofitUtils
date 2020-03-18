@@ -162,13 +162,10 @@ public final class GsonConverterFactory extends Converter.Factory {
         @Override
         public T convert(ResponseBody value) throws IOException {
             try {
-                byte[] bt = value.bytes();
-                ByteBuffer bf = ByteBuffer.wrap(bt);
-                ByteArrayInputStream bis = new ByteArrayInputStream(bf.array());
+                ByteArrayInputStream bis = new ByteArrayInputStream(value.bytes());
                 Reader reader = new BufferedReader(new InputStreamReader(bis));
                 JsonReader jsonReader = gson.newJsonReader(reader);
                 T t = adapter.read(jsonReader);
-                bf.clear();
                 reader.close();
                 bis.close();
                 return t;
