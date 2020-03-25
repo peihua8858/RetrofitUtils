@@ -3,6 +3,8 @@ package com.fz.network;
 
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
+
 import com.fz.network.gson.GsonBuilderFactory;
 import com.fz.network.remote.GsonConverterFactory;
 
@@ -13,6 +15,8 @@ import java.util.Map;
 import okhttp3.CookieJar;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
+import retrofit2.CallAdapter;
+import retrofit2.Converter;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 
@@ -25,20 +29,35 @@ import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
  */
 public class RetrofitClient {
     public static final MediaType MEDIA_TYPE = MediaType.parse("application/json; charset=utf-8");
-    private final OkHttpClient okHttpClient;
+    private final OkHttpClient mOkHttpClient;
+    /**
+     * key: service Class
+     * value:service instance object
+     */
     private final HashMap<Class<?>, Object> services;
+    /**
+     * key: host  url
+     * value retrofit instance object
+     */
     private final HashMap<String, Retrofit> retrofits;
+    private Converter.Factory mFactory;
+    private CallAdapter.Factory mAdapterFactory;
+    /**
+     * 服务域名地址
+     */
     private String mBaseUrl;
 
     private RetrofitClient(OkHttpClient okHttpClient) {
-        this.okHttpClient = okHttpClient;
+        this.mOkHttpClient = okHttpClient;
         services = new HashMap<>();
         retrofits = new HashMap<>();
     }
 
-    public RetrofitClient(Builder builder) {
+    private RetrofitClient(Builder builder) {
         this(builder.httpClient);
         this.mBaseUrl = builder.baseUrl;
+        this.mFactory = builder.factory;
+        this.mAdapterFactory = builder.adapterFactory;
     }
 
     public void removeRetrofit(String url) {
@@ -58,7 +77,7 @@ public class RetrofitClient {
     }
 
     public CookieJar getCookieJar() {
-        return okHttpClient != null ? okHttpClient.cookieJar() : null;
+        return mOkHttpClient != null ? mOkHttpClient.cookieJar() : null;
     }
 
     public RetrofitClient setBaseUrl(String mBaseUrl) {
@@ -76,11 +95,30 @@ public class RetrofitClient {
      * @version 1.0
      */
     public <T> T createRetrofit(String host, Class<T> clazz, MediaType mediaType, final Type type, final Object typeAdapter) {
-        return createRetrofit(host, okHttpClient, clazz, mediaType, new HashMap<Type, Object>() {{
+        return createRetrofit(host, mOkHttpClient, clazz, mediaType, new HashMap<Type, Object>() {{
             if (type != null && typeAdapter != null) {
                 put(type, typeAdapter);
             }
         }});
+    }
+
+    private <T> T createRetrofit(String host, OkHttpClient okHttpClient, Class<T> clazz, MediaType mediaType,
+                                 Map<Type, Object> typeAdapters,
+                                 Converter.Factory factory,
+                                 CallAdapter.Factory adapterFactory) {
+        if (services.containsKey(clazz)) {
+            return clazz.cast(services.get(clazz));
+        }
+        Retrofit retrofit;
+        if (retrofits.containsKey(host)) {
+            retrofit = retrofits.get(host);
+        } else {
+            retrofit = createRetrofit(host, okHttpClient, mediaType, typeAdapters, factory, adapterFactory);
+            retrofits.put(host, retrofit);
+        }
+        T service = retrofit.create(clazz);
+        services.put(clazz, service);
+        return service;
     }
 
     /**
@@ -92,7 +130,8 @@ public class RetrofitClient {
      * @date 2016/12/23 09:40
      * @version 1.0
      */
-    public <T> T createRetrofit(String host, OkHttpClient okHttpClient, Class<T> clazz, MediaType mediaType, Map<Type, Object> typeAdapters) {
+    public <T> T createRetrofit(String host, OkHttpClient okHttpClient, Class<T> clazz, MediaType mediaType,
+                                Map<Type, Object> typeAdapters) {
         if (services.containsKey(clazz)) {
             return clazz.cast(services.get(clazz));
         }
@@ -100,7 +139,7 @@ public class RetrofitClient {
         if (retrofits.containsKey(host)) {
             retrofit = retrofits.get(host);
         } else {
-            retrofit = createRetrofit(host, okHttpClient, mediaType, typeAdapters);
+            retrofit = createRetrofit(host, okHttpClient, mediaType, typeAdapters, null, null);
             retrofits.put(host, retrofit);
         }
         T service = retrofit.create(clazz);
@@ -116,12 +155,14 @@ public class RetrofitClient {
      * @date 2019/1/11 15:26
      * @version 1.0
      */
-    private Retrofit createRetrofit(String host, MediaType mediaType, final Type type, final Object typeAdapter) {
-        return createRetrofit(host, okHttpClient, mediaType, new HashMap<Type, Object>() {{
+    private Retrofit createRetrofit(String host, MediaType mediaType, final Type type, final Object typeAdapter,
+                                    Converter.Factory factory,
+                                    CallAdapter.Factory adapterFactory) {
+        return createRetrofit(host, mOkHttpClient, mediaType, new HashMap<Type, Object>() {{
             if (type != null && typeAdapter != null) {
                 put(type, typeAdapter);
             }
-        }});
+        }}, factory, adapterFactory);
     }
 
     /**
@@ -132,15 +173,40 @@ public class RetrofitClient {
      * @date 2019/1/11 15:26
      * @version 1.0
      */
-    private Retrofit createRetrofit(String host, OkHttpClient okHttpClient, MediaType mediaType, Map<Type, Object> typeAdapters) {
+    private Retrofit createRetrofit(String host, OkHttpClient okHttpClient, MediaType mediaType, Map<Type, Object> typeAdapters,
+                                    Converter.Factory factory,
+                                    CallAdapter.Factory adapterFactory) {
+        if (TextUtils.isEmpty(host)) {
+            host = mBaseUrl;
+        }
+        if (factory == null) {
+            factory = this.mFactory != null ? this.mFactory : GsonConverterFactory.create(GsonBuilderFactory.createBuild(typeAdapters), mediaType);
+        }
+        if (adapterFactory == null) {
+            adapterFactory = this.mAdapterFactory != null ? mAdapterFactory : RxJava2CallAdapterFactory.create();
+        }
+        return createRetrofit(host, okHttpClient, factory, adapterFactory);
+    }
+
+    /**
+     * 创建一个Retrofit
+     *
+     * @param host
+     * @author dingpeihua
+     * @date 2019/1/11 15:26
+     * @version 1.0
+     */
+    private Retrofit createRetrofit(String host, OkHttpClient okHttpClient,
+                                    @NonNull Converter.Factory factory,
+                                    @NonNull CallAdapter.Factory adapterFactory) {
         if (TextUtils.isEmpty(host)) {
             host = mBaseUrl;
         }
         return new Retrofit.Builder()
                 .baseUrl(host)
-                .client(okHttpClient)
-                .addConverterFactory(GsonConverterFactory.create(GsonBuilderFactory.createBuild(typeAdapters), mediaType))
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .client(okHttpClient == null ? this.mOkHttpClient : okHttpClient)
+                .addConverterFactory(factory)
+                .addCallAdapterFactory(adapterFactory)
                 .build();
     }
 
@@ -213,6 +279,8 @@ public class RetrofitClient {
         private String host;
         private MediaType mediaType;
         private Class<T> service;
+        private Converter.Factory converterFactory;
+        private CallAdapter.Factory adapterFactory;
         private HashMap<Type, Object> typeAdapters = new HashMap<>();
 
         public ServiceBuilder(RetrofitClient vpHttpClient, Class<T> val) {
@@ -222,6 +290,16 @@ public class RetrofitClient {
 
         public ServiceBuilder<T> setHttpClient(OkHttpClient val) {
             okHttpClient = val;
+            return this;
+        }
+
+        public ServiceBuilder<T> converter(Converter.Factory factory) {
+            converterFactory = factory;
+            return this;
+        }
+
+        public ServiceBuilder<T> adapter(CallAdapter.Factory factory) {
+            adapterFactory = factory;
             return this;
         }
 
@@ -251,7 +329,8 @@ public class RetrofitClient {
         }
 
         public T build() {
-            return service.cast(httpClient.createRetrofit(host, okHttpClient, service, mediaType, typeAdapters));
+            return service.cast(httpClient.createRetrofit(host, okHttpClient, service, mediaType, typeAdapters,
+                    converterFactory, adapterFactory));
         }
     }
 
@@ -260,10 +339,22 @@ public class RetrofitClient {
     }
 
     public static class Builder {
-        OkHttpClient httpClient;
+        private OkHttpClient httpClient;
         private String baseUrl;
+        private Converter.Factory factory;
+        private CallAdapter.Factory adapterFactory;
 
         public Builder() {
+        }
+
+        public Builder converter(Converter.Factory factory) {
+            this.factory = factory;
+            return this;
+        }
+
+        public Builder adapter(CallAdapter.Factory factory) {
+            this.adapterFactory = factory;
+            return this;
         }
 
         public Builder setHttpClient(OkHttpClient httpClient) {

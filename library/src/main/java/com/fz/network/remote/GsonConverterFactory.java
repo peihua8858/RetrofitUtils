@@ -32,7 +32,6 @@ import java.io.Reader;
 import java.io.Writer;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
 import okhttp3.MediaType;

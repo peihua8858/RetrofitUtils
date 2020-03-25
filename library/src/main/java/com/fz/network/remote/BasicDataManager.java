@@ -23,10 +23,14 @@ public class BasicDataManager {
     private RetrofitClient mClient;
 
     protected BasicDataManager(OkHttpClient httpClient, String baseUrl) {
-        mClient = RetrofitClient.newBuilder()
+        this(RetrofitClient.newBuilder()
                 .setHttpClient(httpClient)
                 .setBaseUrl(baseUrl)
-                .build();
+                .build());
+    }
+
+    protected BasicDataManager(RetrofitClient client) {
+        setRetrofit(client);
     }
 
     protected BasicDataManager(OkHttpClient httpClient) {
@@ -46,17 +50,24 @@ public class BasicDataManager {
     }
 
     public void newRetrofit(OkHttpClient httpClient, String baseUrl) {
-        mClient = RetrofitClient.newBuilder()
+        setRetrofit(RetrofitClient.newBuilder()
                 .setHttpClient(httpClient)
                 .setBaseUrl(baseUrl)
-                .build();
+                .build());
     }
 
     public void newRetrofit(HttpClient httpClient, String baseUrl) {
-        mClient = RetrofitClient.newBuilder()
+        setRetrofit(RetrofitClient.newBuilder()
                 .setHttpClient(httpClient)
                 .setBaseUrl(baseUrl)
-                .build();
+                .build());
+    }
+
+    public void setRetrofit(RetrofitClient client) {
+        if (client == null) {
+            throw new NullPointerException("client is null.");
+        }
+        this.mClient = client;
     }
 
     /**

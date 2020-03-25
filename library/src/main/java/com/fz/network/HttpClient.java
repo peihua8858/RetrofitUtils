@@ -267,7 +267,9 @@ public class HttpClient {
      * @version 1.0
      */
     public HttpClient netLogInterceptor(NetLoggingInterceptor.OnDynamicParamCallback callback) {
-        netLogInterceptor = new NetLoggingInterceptor(callback);
+        if (callback != null) {
+            netLogInterceptor = new NetLoggingInterceptor(callback);
+        }
         return this;
     }
 
