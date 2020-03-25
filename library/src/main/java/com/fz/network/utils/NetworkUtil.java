@@ -50,9 +50,7 @@ public final class NetworkUtil {
         if (context == null) {
             context = mContext;
         }
-        ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = manager.getActiveNetworkInfo();
-        return networkInfo != null && networkInfo.isConnected();
+        return isNetAvailable(context);
     }
 
     /**
@@ -111,7 +109,7 @@ public final class NetworkUtil {
      * @version 1.0
      */
     public static boolean isConnected() {
-        return Connectivity.isConnected(mContext);
+        return isNetAvailable(mContext);
     }
 
 
@@ -124,9 +122,7 @@ public final class NetworkUtil {
      */
     public static boolean isConnected(Fragment fragment) {
         if (fragment != null) {
-            boolean isConnect = Connectivity.isConnected(fragment.getActivity());
-            KLog.d("LockNetwork>>>>>isConnect:" + isConnect);
-            return isConnect;
+            return isNetAvailable(fragment.getContext());
         }
         return false;
     }
@@ -139,17 +135,17 @@ public final class NetworkUtil {
      * @version 1.0
      */
     public static boolean isConnected(Context context) {
-        if (context != null) {
-            boolean isConnect = Connectivity.isConnected(context.getApplicationContext());
-            KLog.d("LockNetwork>>>>>isConnect:" + isConnect);
-            return isConnect;
-        }
-        return false;
+        return isNetAvailable(context);
+    }
+
+    public static boolean isNetAvailable(Context context) {
+        return Connectivity.isNetAvailable(context);
     }
 
     public static boolean isConnectedFast() {
         return Connectivity.isConnectedFast(mContext);
     }
+
 
     public static NetworkType getNetworkType(Context context) {
         return Connectivity.getNetworkType(context);

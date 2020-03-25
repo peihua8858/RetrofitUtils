@@ -12,7 +12,9 @@ package com.fz.network.utils;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
+import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.telephony.TelephonyManager;
 
 /**
@@ -42,8 +44,23 @@ final class Connectivity {
      * @return
      */
     static boolean isConnected(Context context) {
-        NetworkInfo info = Connectivity.getNetworkInfo(context);
-        return (info != null && info.isConnected());
+        return isNetAvailable(context);
+    }
+
+    static boolean isNetAvailable(Context context) {
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (Build.VERSION.SDK_INT >= 29) {
+            NetworkCapabilities networkCapabilities = connectivityManager.getNetworkCapabilities(connectivityManager.getActiveNetwork());
+            if (networkCapabilities != null
+                    && networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                    &&networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED))
+                return true;
+        } else {
+            NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+            return networkInfo != null && networkInfo.isConnected();
+        }
+
+        return false;
     }
 
     /**
@@ -111,10 +128,10 @@ final class Connectivity {
                     return true; // ~ 1-23 Mbps
                 case TelephonyManager.NETWORK_TYPE_UMTS:
                     return true; // ~ 400-7000 kbps
-            /*
-             * Above API level 7, make sure to set android:targetSdkVersion
-			 * to appropriate level to use these
-			 */
+                /*
+                 * Above API level 7, make sure to set android:targetSdkVersion
+                 * to appropriate level to use these
+                 */
                 case TelephonyManager.NETWORK_TYPE_EHRPD: // API level 11
                     return true; // ~ 1-2 Mbps
                 case TelephonyManager.NETWORK_TYPE_EVDO_B: // API level 9
