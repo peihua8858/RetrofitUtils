@@ -488,6 +488,43 @@ public class VpRequestParams implements Serializable {
     public static final MediaType FORM_TYPE = MediaType.parse("application/x-www-form-urlencoded; charset=UTF-8");
 
     /**
+     * 构建请求参数
+     *
+     * @param params
+     * @author dingpeihua
+     * @date 2020/4/13 15:42
+     * @version 1.0
+     */
+    public static String createRequestParams(VpRequestParams params) {
+        Map<String, Object> paramsMap = params.urlParams;
+        if (params.isJsonParams) {
+            if (TextUtils.isEmpty(params.jsonParams)) {
+                //json 参数
+                Gson mGson = params.mGson;
+                params.jsonParams = mGson.toJson(paramsMap);
+            }
+            return params.jsonParams;
+        } else {
+            StringBuilder builder = new StringBuilder();
+            Iterator<String> it = paramsMap.keySet().iterator();
+            // add 参数
+            while (it.hasNext()) {
+                String key = it.next();
+                Object value = paramsMap.get(key);
+                if (builder.length() > 0) {
+                    builder.append("&");
+                }
+                builder.append(key);
+                builder.append("=");
+                if (value != null) {
+                    builder.append(VpUrlUtil.toString(value));
+                }
+            }
+            return builder.toString();
+        }
+    }
+
+    /**
      * 请求参数
      *
      * @param params

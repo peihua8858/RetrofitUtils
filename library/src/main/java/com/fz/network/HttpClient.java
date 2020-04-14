@@ -105,6 +105,8 @@ public class HttpClient {
     private Interceptor netLogInterceptor;
     private String cachePath;
     private CookieMap cookieMap;
+    private int maxRequests = 128;
+    private int maxRequestsPerHost = 64;
 
     public HttpClient(Context context, okhttp3.OkHttpClient.Builder builder) {
         this.context = context;
@@ -469,6 +471,28 @@ public class HttpClient {
     }
 
     /**
+     * @see {@link Dispatcher#setMaxRequests(int)}
+     */
+    public HttpClient setMaxRequests(int maxRequests) {
+        if (maxRequests < 1) {
+            throw new IllegalArgumentException("max < 1: " + maxRequests);
+        }
+        this.maxRequests = maxRequests;
+        return this;
+    }
+
+    /**
+     * @see {@link Dispatcher#setMaxRequestsPerHost(int)}
+     */
+    public HttpClient setMaxRequestsPerHost(int maxRequestsPerHost) {
+        if (maxRequestsPerHost < 1) {
+            throw new IllegalArgumentException("max < 1: " + maxRequestsPerHost);
+        }
+        this.maxRequestsPerHost = maxRequestsPerHost;
+        return this;
+    }
+
+    /**
      * @see {@link okhttp3.OkHttpClient.Builder#protocols(List)}
      */
     public HttpClient protocols(List<Protocol> protocols) {
@@ -639,9 +663,16 @@ public class HttpClient {
                 builder.addNetworkInterceptor(networkInterceptor);
             }
         }
-        //错ë误重连
+        //错误重连
         builder.retryOnConnectionFailure(true);
-        return builder.build();
+        okhttp3.OkHttpClient okHttpClient = builder.build();
+        if (maxRequests > 1) {
+            okHttpClient.dispatcher().setMaxRequests(maxRequests);
+        }
+        if (maxRequestsPerHost > 1) {
+            okHttpClient.dispatcher().setMaxRequestsPerHost(maxRequestsPerHost);
+        }
+        return okHttpClient;
     }
 
     /**
