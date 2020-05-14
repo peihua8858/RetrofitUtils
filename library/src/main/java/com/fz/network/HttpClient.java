@@ -80,15 +80,23 @@ public class HttpClient {
 
     static class CookieMap {
         boolean isAddCookie;
-        private String[] cookies;
+        private String[] mCookies;
+        private boolean hostOnly = false;
+        boolean secure = false;
 
         public boolean hasCookies() {
-            return cookies != null && cookies.length > 0;
+            return mCookies != null && mCookies.length > 0;
         }
 
         public CookieMap(boolean isAddCookie, String[] cookies) {
+            this(isAddCookie, false, false, cookies);
+        }
+
+        public CookieMap(boolean isAddCookie, boolean hostOnly, boolean secure, String[] cookies) {
             this.isAddCookie = isAddCookie;
-            this.cookies = cookies;
+            this.mCookies = cookies;
+            this.hostOnly = hostOnly;
+            this.secure = secure;
         }
     }
 
@@ -104,7 +112,7 @@ public class HttpClient {
     private Interceptor responseCacheInterceptor;
     private Interceptor netLogInterceptor;
     private String cachePath;
-    private CookieMap cookieMap;
+    private List<CookieMap> cookieMaps;
     private int maxRequests = 128;
     private int maxRequestsPerHost = 64;
 
@@ -131,7 +139,7 @@ public class HttpClient {
         this.responseCacheInterceptor = other.responseCacheInterceptor;
         this.netLogInterceptor = other.netLogInterceptor;
         this.cachePath = other.cachePath;
-        this.cookieMap = other.cookieMap;
+        this.cookieMaps = other.cookieMaps;
     }
 
     public HttpClient addCookie(boolean isAddCookie, Cookie cookie) {
@@ -186,8 +194,34 @@ public class HttpClient {
      * @version 1.0
      */
     public HttpClient addCookie(boolean isAddCookie, String... cookies) {
+        return addCookie(isAddCookie, false, cookies);
+    }
+
+    /**
+     * 设置cookie，默认secure为true，即默认必须是https
+     * 如果非https 可使用{@link #addCookie(Cookie)}或者{@link #addCookie(Cookie...)}
+     *
+     * @param isAddCookie true则添加cookie，否则不添加
+     * @param hostOnly    true 只匹配host
+     * @param cookies     长度必须是4的倍数：
+     *                    cookies[i] :domain
+     *                    cookies[i + 1] :path
+     *                    cookies[i + 2] :name
+     *                    cookies[i + 3]  :value
+     * @author dingpeihua
+     * @date 2020/1/3 11:15
+     * @version 1.0
+     */
+    public HttpClient addCookie(boolean isAddCookie, boolean hostOnly, String... cookies) {
+        return addCookie(isAddCookie, false, false, cookies);
+    }
+
+    public HttpClient addCookie(boolean isAddCookie, boolean hostOnly, boolean secure, String... cookies) {
         if (cookies != null && cookies.length % 4 == 0) {
-            cookieMap = new CookieMap(isAddCookie, cookies);
+            if (cookieMaps == null) {
+                cookieMaps = new ArrayList<>();
+            }
+            cookieMaps.add(new CookieMap(isAddCookie, hostOnly, secure, cookies));
         }
         return this;
     }
@@ -592,7 +626,7 @@ public class HttpClient {
     }
 
     boolean hasCookie() {
-        return mCookies != null || (cookieMap != null && cookieMap.hasCookies());
+        return mCookies != null || (cookieMaps != null && cookieMaps.size() > 0);
     }
 
     public okhttp3.OkHttpClient build() {
@@ -723,25 +757,34 @@ public class HttpClient {
                 }
             }
         }
-        if (cookieMap != null && cookieMap.hasCookies()) {
-            String[] values = cookieMap.cookies;
-            int length = values.length;
-            for (int i = 0; i < length; ) {
-                final String domain = values[i];
-                final String path = values[i + 1];
-                final String name = values[i + 2];
-                final String value = values[i + 3];
-                final Cookie cookie = new Cookie.Builder()
-                        .hostOnlyDomain(domain)
-                        .path(path)
-                        .name(name)
-                        .value(value)
-                        .secure()
-                        .build();
-                if (cookieMap.isAddCookie) {
-                    cookies.add(cookie);
+        if (cookieMaps != null && cookieMaps.size() > 0) {
+            for (CookieMap cookieMap : cookieMaps) {
+                if (cookieMap.hasCookies()) {
+                    String[] values = cookieMap.mCookies;
+                    int length = values.length;
+                    for (int i = 0; i < length; ) {
+                        final String domain = values[i];
+                        final String path = values[i + 1];
+                        final String name = values[i + 2];
+                        final String value = values[i + 3];
+                        final Cookie.Builder builder = new Cookie.Builder()
+                                .path(path)
+                                .name(name)
+                                .value(value);
+                        if (cookieMap.hostOnly) {
+                            builder.hostOnlyDomain(domain);
+                        } else {
+                            builder.domain(domain);
+                        }
+                        if (cookieMap.secure) {
+                            builder.secure();
+                        }
+                        if (cookieMap.isAddCookie) {
+                            cookies.add(builder.build());
+                        }
+                        i += 4;
+                    }
                 }
-                i += 4;
             }
         }
         cookieCache.addAll(cookies);
