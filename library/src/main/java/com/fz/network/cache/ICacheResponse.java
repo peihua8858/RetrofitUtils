@@ -27,12 +27,16 @@ public abstract class ICacheResponse {
     }
 
     /**
-     * 检查http返回数据是否为空；
+     * 检查http返回数据结果是否为空,如果为true，则表示需要缓存数据，
+     * false表示数据结果集为空，则表示不需要缓存数据；
      * 如返回{"statusCode":200,"msg":"","result":{...}}应检查result是否为空
      *
+     * @return true表示有可用结果集，false表示没有可用结果集
      * @author dingpeihua
      * @date 2019/9/2 11:38
      * @version 1.0
      */
-    protected abstract boolean checkResult();
+    protected boolean checkResult() {
+        return false;
+    }
 }
