@@ -16,6 +16,9 @@ import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.telephony.TelephonyManager;
+import android.util.Log;
+
+import androidx.annotation.NonNull;
 
 /**
  * 网络连接工具
@@ -33,6 +36,10 @@ final class Connectivity {
      * @return
      */
     static NetworkInfo getNetworkInfo(Context context) {
+        if (context == null) {
+            Log.e("Network", "Context is null.");
+            return null;
+        }
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         return cm != null ? cm.getActiveNetworkInfo() : null;
     }
@@ -43,17 +50,21 @@ final class Connectivity {
      * @param context
      * @return
      */
-    static boolean isConnected(Context context) {
-        return isNetAvailable(context);
+    static boolean isConnected(Context context, boolean isDefault) {
+        return isNetAvailable(context, isDefault);
     }
 
-    static boolean isNetAvailable(Context context) {
+    static boolean isNetAvailable(Context context, boolean isDefault) {
+        if (context == null) {
+            Log.e("Network", "Context is null.");
+            return isDefault;
+        }
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         if (Build.VERSION.SDK_INT >= 29) {
             NetworkCapabilities networkCapabilities = connectivityManager.getNetworkCapabilities(connectivityManager.getActiveNetwork());
             if (networkCapabilities != null
                     && networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-                    &&networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED))
+                    && networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED))
                 return true;
         } else {
             NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
@@ -69,7 +80,7 @@ final class Connectivity {
      * @param context
      * @return
      */
-    static boolean isConnectedWifi(Context context) {
+    static boolean isConnectedWifi(@NonNull Context context) {
         NetworkInfo info = Connectivity.getNetworkInfo(context);
         return (info != null && info.isConnected() && info.getType() == ConnectivityManager.TYPE_WIFI);
     }
@@ -80,7 +91,7 @@ final class Connectivity {
      * @param context
      * @return
      */
-    static boolean isConnectedMobile(Context context) {
+    static boolean isConnectedMobile(@NonNull Context context) {
         NetworkInfo info = Connectivity.getNetworkInfo(context);
         return (info != null && info.isConnected() && info.getType() == ConnectivityManager.TYPE_MOBILE);
     }
@@ -91,7 +102,7 @@ final class Connectivity {
      * @param context
      * @return
      */
-    static boolean isConnectedFast(Context context) {
+    static boolean isConnectedFast(@NonNull Context context) {
         NetworkInfo info = Connectivity.getNetworkInfo(context);
         return (info != null && info.isConnected() && Connectivity.isConnectionFast(info.getType(), info.getSubtype()));
     }

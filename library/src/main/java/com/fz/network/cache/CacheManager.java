@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Globalegrow E-Commerce Co. , Ltd. 2007-2018.
+ * Copyright (C) Globalegrow E-Commerce Co. , Ltd. 2007-2020.
  * All rights reserved.
  * This software is the confidential and proprietary information
  * of Globalegrow E-Commerce Co. , Ltd. ("Confidential Information").
@@ -65,8 +65,35 @@ public class CacheManager {
     private DiskLruCache mDiskLruCache;
     private static CacheManager cacheManager;
 
+    private CacheManager(Context context, String cachePath) {
+        File diskCacheDir = new File(cachePath);
+        if (!diskCacheDir.exists()) {
+            boolean b = diskCacheDir.mkdirs();
+            KLog.d(TAG, "!diskCacheDir.exists() --- diskCacheDir.mkdirs()=" + b);
+        }
+        if (diskCacheDir.getUsableSpace() > DISK_CACHE_SIZE) {
+            try {
+                mDiskLruCache = DiskLruCache.open(diskCacheDir,
+                        /*一个key对应多少个文件*/
+                        getAppVersion(context), CACHE_VALUE_COUNT, DISK_CACHE_SIZE);
+                KLog.d(TAG, "mDiskLruCache created");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public static CacheManager initCacheManager(Context context) {
         return initCacheManager(context, null);
+    }
+
+    public static boolean isInitCache() {
+        if (cacheManager == null) {
+            KLog.e(TAG, "retrofit缓存器还没有初始化，不能读取和存储缓存数据。请先调用" +
+                    "CacheManager.initCacheManager(Context, String)" +
+                    "或者CacheManager.initCacheManager(Context)方法初始化缓存管理器");
+        }
+        return cacheManager != null;
     }
 
     public static CacheManager initCacheManager(Context context, String cachePath) {
@@ -88,30 +115,12 @@ public class CacheManager {
         return cacheManager;
     }
 
-    private CacheManager(Context context, String cachePath) {
-        File diskCacheDir = new File(cachePath);
-        if (!diskCacheDir.exists()) {
-            boolean b = diskCacheDir.mkdirs();
-            KLog.d(TAG, "!diskCacheDir.exists() --- diskCacheDir.mkdirs()=" + b);
-        }
-        if (diskCacheDir.getUsableSpace() > DISK_CACHE_SIZE) {
-            try {
-                mDiskLruCache = DiskLruCache.open(diskCacheDir,
-                        /*一个key对应多少个文件*/
-                        getAppVersion(context), CACHE_VALUE_COUNT, DISK_CACHE_SIZE);
-                KLog.d(TAG, "mDiskLruCache created");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
     /**
      * 同步设置缓存
      */
     public synchronized void putCache(String key, String value, long lifeTime) {
         if (mDiskLruCache == null) {
-            KLog.e("DiskLruCache not initialized!");
+            KLog.e(TAG, "DiskLruCache not initialized!");
             return;
         }
         OutputStream os = null;
@@ -120,6 +129,7 @@ public class CacheManager {
             os = editor.newOutputStream(DISK_CACHE_INDEX);
             os.write(value.getBytes());
             os.flush();
+            //缓存有效截止时间戳是保存数据的当前时间戳+数据有效时间
             editor.set(LIFT_TIME_INDEX, String.valueOf(lifeTime > 0 ? System.currentTimeMillis() + lifeTime : DEFAULT_LIFE_TIME));
             editor.commit();
             mDiskLruCache.flush();
@@ -148,7 +158,7 @@ public class CacheManager {
      */
     public String getCache(String key) {
         if (mDiskLruCache == null) {
-            KLog.e("DiskLruCache not initialized!");
+            KLog.e(TAG, "DiskLruCache not initialized!");
             return null;
         }
         FileInputStream fis = null;
@@ -158,7 +168,8 @@ public class CacheManager {
             DiskLruCache.Snapshot snapshot = mDiskLruCache.get(md5Key);
             if (snapshot != null) {
                 fis = (FileInputStream) snapshot.getInputStream(DISK_CACHE_INDEX);
-                long lifeTime = Long.valueOf(snapshot.getString(LIFT_TIME_INDEX));
+                //lifeTime=保存数据的当前时间戳+数据有效时间，所以读取数据时，当前时间戳小于lifeTime即为缓存过期
+                long lifeTime = CacheUtil.toLong(snapshot.getString(LIFT_TIME_INDEX));
                 if (lifeTime == DEFAULT_LIFE_TIME || System.currentTimeMillis() < lifeTime) {
                     bos = new ByteArrayOutputStream();
                     byte[] buf = new byte[1024];
@@ -169,7 +180,7 @@ public class CacheManager {
                     byte[] data = bos.toByteArray();
                     return new String(data, CacheUtil.UTF_8);
                 } else {
-                    //remove key
+                    //缓存过期删除key
                     mDiskLruCache.remove(md5Key);
                     return null;
                 }

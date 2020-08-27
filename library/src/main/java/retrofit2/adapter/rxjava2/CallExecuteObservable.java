@@ -26,6 +26,7 @@ import io.reactivex.exceptions.Exceptions;
 import io.reactivex.plugins.RxJavaPlugins;
 import retrofit2.Call;
 import retrofit2.Response;
+
 import com.fz.network.cache.HttpCacheManager;
 
 /**
@@ -56,7 +57,7 @@ final class CallExecuteObservable<T> extends Observable<Response<T>> {
         }
         Call<T> call2 = originalCall.clone();
         Response<T> response = HttpCacheManager.instance().get(call2);
-        if (NetworkUtil.isConnected()) {
+        if (NetworkUtil.isConnected(true)) {
             if (response != null) {
                 if (!disposable.isDisposed()) {
                     observer.onNext(response);

@@ -15,8 +15,8 @@
  */
 package com.fz.network.remote;
 
+import com.fz.gson.GsonFactory;
 import com.fz.network.RetrofitClient;
-import com.fz.network.gson.GsonBuilderFactory;
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
 import com.google.gson.reflect.TypeToken;
@@ -55,12 +55,12 @@ public final class GsonConverterFactory extends Converter.Factory {
      * decoding from JSON (when no charset is specified by a header) will use UTF-8.
      */
     public static GsonConverterFactory create() {
-        return create(GsonBuilderFactory.createDefaultBuild().create());
+        return create(GsonFactory.createDefaultBuild().create());
     }
 
     public static GsonConverterFactory create(MediaType mediaType) {
 
-        return create(GsonBuilderFactory.createDefaultBuild().create(), mediaType);
+        return create(GsonFactory.createDefaultBuild().create(), mediaType);
     }
 
     /**
@@ -84,7 +84,7 @@ public final class GsonConverterFactory extends Converter.Factory {
 
     private GsonConverterFactory(Gson gson, MediaType mediaType) {
         if (gson == null) {
-            gson = GsonBuilderFactory.createDefaultBuild().create();
+            gson = GsonFactory.createDefaultBuild().create();
         }
         this.gson = gson;
         this.mediaType = mediaType;

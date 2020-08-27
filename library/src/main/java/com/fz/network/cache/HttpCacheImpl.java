@@ -18,7 +18,6 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okio.Buffer;
 import retrofit2.Call;
-import retrofit2.Response;
 
 /**
  * 缓存内部实现
@@ -30,7 +29,11 @@ import retrofit2.Response;
 class HttpCacheImpl implements IHttpCache {
     final static String POST = "POST";
     final static String GET = "GET";
+    private final static Charset UTF8 = Charset.forName("UTF-8");
+    private static final String KEY_DATA = "data";
     private static final String KEY_OPEN_CACHE = "isOpenCache";
+    private static final String KEY_TIMESTAMP = "timestamp";
+    private static final String KEY_SAVE_CACHE = "isSaveCache";
     private static final String KEY_LIFE_TIME = "lifeTime";
     private long cacheLifeTime = -1;
 
@@ -72,8 +75,8 @@ class HttpCacheImpl implements IHttpCache {
     private boolean saveGetMethodCache(Request request, String response) throws IOException, JSONException {
         final String tUrl = request.url().toString();
         Uri uri = Uri.parse(tUrl);
-        boolean isOpenCache = CacheUtil.toBoolean(CacheUtil.getUriParameter(uri, "isOpenCache"));
-        long lifeTime = CacheUtil.toLong(CacheUtil.getUriParameter(uri, "lifeTime"), getLifeTime());
+        boolean isOpenCache = CacheUtil.toBoolean(CacheUtil.getUriParameter(uri, KEY_OPEN_CACHE));
+        long lifeTime = CacheUtil.toLong(CacheUtil.getUriParameter(uri, KEY_LIFE_TIME), getLifeTime());
         if (isOpenCache) {
             return saveCache(response, tUrl, "", lifeTime);
         }
@@ -98,23 +101,30 @@ class HttpCacheImpl implements IHttpCache {
         Buffer buffer = new Buffer();
         requestBody.writeTo(buffer);
         buffer.close();
-        String json = buffer.readString(Charset.forName("UTF-8"));
+        String json = buffer.readString(UTF8);
         JSONObject jsonObject = new JSONObject(json);
-        boolean isSaveCache = isOpenCache(jsonObject);
+        boolean isSaveCache = isOpenCache(jsonObject) || isSaveCache(jsonObject);
         long lifeTime = findLifeTime(jsonObject);
-        JSONObject dataJson = jsonObject.optJSONObject("data");
+        JSONObject dataJson = jsonObject.optJSONObject(KEY_DATA);
         if (dataJson != null) {
-            dataJson.remove("timestamp");
+            remove(dataJson);
         }
-
-        jsonObject.remove("timestamp");
-        jsonObject.remove("isOpenCache");
+        remove(jsonObject);
         json = jsonObject.toString();
         if (isSaveCache) {
             KLog.d("LockCacheManage写入>>>tUrl:" + tUrl + ",json:" + json);
             return saveCache(response, tUrl, json, lifeTime);
         }
         return false;
+    }
+
+    private void remove(JSONObject object) {
+        if (object != null) {
+            object.remove(KEY_OPEN_CACHE);
+            object.remove(KEY_SAVE_CACHE);
+            object.remove(KEY_TIMESTAMP);
+            object.remove(KEY_LIFE_TIME);
+        }
     }
 
     /**
@@ -131,21 +141,11 @@ class HttpCacheImpl implements IHttpCache {
         String cacheKey = buildCacheKey(tUrl, json);
         KLog.d("LockCacheManage写入>>>cacheKey:" + cacheKey);
         KLog.d("LockCacheManage写入>>>content:" + response);
-        if (!TextUtils.isEmpty(response)) {
+        if (!TextUtils.isEmpty(response) && CacheManager.isInitCache()) {
             CacheManager.getInstance().putCache(cacheKey, response, lifeTime);
             return true;
         }
         return false;
-    }
-
-    public Object checkResponse(Response response) {
-        Object body = response.body();
-        if (body instanceof ICacheResponse) {
-            if (((ICacheResponse) body).checkResult()) {
-                return body;
-            }
-        }
-        return null;
     }
 
     private String buildCacheKey(String httpUrl, String requestContent) throws IOException {
@@ -182,7 +182,7 @@ class HttpCacheImpl implements IHttpCache {
     private String readGetMethodCache(Request request) throws IOException {
         final String tUrl = request.url().toString();
         Uri uri = Uri.parse(tUrl);
-        boolean isOpenCache = CacheUtil.toBoolean(CacheUtil.getUriParameter(uri, "isOpenCache"));
+        boolean isOpenCache = CacheUtil.toBoolean(CacheUtil.getUriParameter(uri, KEY_OPEN_CACHE));
         if (isOpenCache) {
             return readCache(tUrl, "");
         }
@@ -198,17 +198,14 @@ class HttpCacheImpl implements IHttpCache {
         Buffer buffer = new Buffer();
         requestBody.writeTo(buffer);
         buffer.close();
-        String json = buffer.readString(Charset.forName("UTF-8"));
+        String json = buffer.readString(UTF8);
         JSONObject jsonObject = new JSONObject(json);
         boolean isSaveCache = isOpenCache(jsonObject);
-        //删除lifeTime字段
-        long lifeTime = findLifeTime(jsonObject);
-        JSONObject dataJson = jsonObject.optJSONObject("data");
+        JSONObject dataJson = jsonObject.optJSONObject(KEY_DATA);
         if (dataJson != null) {
-            dataJson.remove("timestamp");
+            remove(dataJson);
         }
-        jsonObject.remove("timestamp");
-        jsonObject.remove("isOpenCache");
+        remove(jsonObject);
         json = jsonObject.toString();
         if (isSaveCache) {
             KLog.d("LockCacheManage读取>>>tUrl:" + tUrl);
@@ -219,10 +216,13 @@ class HttpCacheImpl implements IHttpCache {
     }
 
     private String readCache(String tUrl, String json) throws IOException {
-        String cacheKey = buildCacheKey(tUrl, json);
-        String content = CacheManager.getInstance().getCache(cacheKey);
-        KLog.d("LockCacheManage读取>>>cacheKey:" + cacheKey);
-        return content;
+        if (CacheManager.isInitCache()) {
+            String cacheKey = buildCacheKey(tUrl, json);
+            String content = CacheManager.getInstance().getCache(cacheKey);
+            KLog.d("LockCacheManage读取>>>cacheKey:" + cacheKey);
+            return content;
+        }
+        return null;
     }
 
     long findLifeTime(JSONObject jsonObject) {
@@ -232,6 +232,11 @@ class HttpCacheImpl implements IHttpCache {
 
     boolean isOpenCache(JSONObject jsonObject) {
         Object value = findValue(jsonObject, KEY_OPEN_CACHE);
+        return CacheUtil.toBoolean(value);
+    }
+
+    boolean isSaveCache(JSONObject jsonObject) {
+        Object value = findValue(jsonObject, KEY_SAVE_CACHE);
         return CacheUtil.toBoolean(value);
     }
 

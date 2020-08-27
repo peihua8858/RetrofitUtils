@@ -4,7 +4,7 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 
-import com.fz.network.gson.GsonBuilderFactory;
+import com.fz.gson.GsonFactory;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
@@ -42,7 +42,7 @@ public class HttpResponseAdapter implements JsonDeserializer<HttpResponse> {
     }
 
     public HttpResponseAdapter() {
-        this.gson = GsonBuilderFactory.createDefaultBuild().create();
+        this.gson = GsonFactory.createDefaultBuild().create();
     }
 
     @Override

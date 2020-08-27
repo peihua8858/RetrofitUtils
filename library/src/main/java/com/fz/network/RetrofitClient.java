@@ -5,8 +5,9 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 
-import com.fz.network.gson.GsonBuilderFactory;
+import com.fz.gson.GsonFactory;
 import com.fz.network.remote.GsonConverterFactory;
+import com.fz.okhttp.OkHttpWrapper;
 
 import java.lang.reflect.Type;
 import java.util.HashMap;
@@ -180,7 +181,7 @@ public class RetrofitClient {
             host = mBaseUrl;
         }
         if (factory == null) {
-            factory = this.mFactory != null ? this.mFactory : GsonConverterFactory.create(GsonBuilderFactory.createBuild(typeAdapters), mediaType);
+            factory = this.mFactory != null ? this.mFactory : GsonConverterFactory.create(GsonFactory.createBuild(typeAdapters), mediaType);
         }
         if (adapterFactory == null) {
             adapterFactory = this.mAdapterFactory != null ? mAdapterFactory : RxJava2CallAdapterFactory.create();
@@ -303,7 +304,7 @@ public class RetrofitClient {
             return this;
         }
 
-        public ServiceBuilder<T> setHttpClient(HttpClient val) {
+        public ServiceBuilder<T> setHttpClient(OkHttpWrapper val) {
             okHttpClient = val.build();
             return this;
         }
@@ -362,7 +363,7 @@ public class RetrofitClient {
             return this;
         }
 
-        public Builder setHttpClient(HttpClient httpClient) {
+        public Builder setHttpClient(OkHttpWrapper httpClient) {
             this.httpClient = httpClient.build();
             return this;
         }

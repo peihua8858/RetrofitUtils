@@ -1,8 +1,8 @@
 package com.fz.network.remote;
 
 
-import com.fz.network.HttpClient;
 import com.fz.network.RetrofitClient;
+import com.fz.okhttp.OkHttpWrapper;
 
 import java.lang.reflect.Type;
 import java.util.Map;
@@ -37,11 +37,11 @@ public class BasicDataManager {
         this(httpClient, "");
     }
 
-    protected BasicDataManager(HttpClient httpClient) {
+    protected BasicDataManager(OkHttpWrapper httpClient) {
         this(httpClient, "");
     }
 
-    protected BasicDataManager(HttpClient httpClient, String baseUrl) {
+    protected BasicDataManager(OkHttpWrapper httpClient, String baseUrl) {
         this(httpClient.build(), baseUrl);
     }
 
@@ -56,7 +56,7 @@ public class BasicDataManager {
                 .build());
     }
 
-    public void newRetrofit(HttpClient httpClient, String baseUrl) {
+    public void newRetrofit(OkHttpWrapper httpClient, String baseUrl) {
         setRetrofit(RetrofitClient.newBuilder()
                 .setHttpClient(httpClient)
                 .setBaseUrl(baseUrl)

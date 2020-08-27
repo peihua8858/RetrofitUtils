@@ -112,6 +112,18 @@ public final class NetworkUtil {
         return isNetAvailable(mContext);
     }
 
+    /**
+     * 检测网络是否连接
+     *
+     * @param isDefault 默认返回
+     * @author dingpeihua
+     * @date 2016/10/19 16:42
+     * @version 1.0
+     */
+    public static boolean isConnected(boolean isDefault) {
+        return isNetAvailable(mContext, isDefault);
+    }
+
 
     /**
      * 检测网络是否连接
@@ -138,8 +150,18 @@ public final class NetworkUtil {
         return isNetAvailable(context);
     }
 
+    /**
+     * 检测网络是否连接
+     * @param context
+     * @param isDefault 默认返回
+     * @return
+     */
+    public static boolean isNetAvailable(Context context, boolean isDefault) {
+        return Connectivity.isNetAvailable(context, isDefault);
+    }
+
     public static boolean isNetAvailable(Context context) {
-        return Connectivity.isNetAvailable(context);
+        return Connectivity.isNetAvailable(context, false);
     }
 
     public static boolean isConnectedFast() {

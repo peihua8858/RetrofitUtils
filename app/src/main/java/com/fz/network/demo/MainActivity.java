@@ -16,8 +16,6 @@ import java.util.List;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
-import okhttp3.MediaType;
-import okhttp3.RequestBody;
 import retrofit2.HttpException;
 import retrofit2.Response;
 
@@ -52,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
         request.readTimeoutMillis(1000);
         request.writeTimeoutMillis(1000);
         request.setJsonParams(false);
-        request.setlifeTime(5000000);
+        request.setLifeTime(5000000);
         ApiManager.addressApi().getAddressLits(request.createRequestBody())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -76,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
         request.connectTimeoutMillis(1000);
         request.readTimeoutMillis(1000);
         request.writeTimeoutMillis(1000);
-        request.setlifeTime(5000000);
+        request.setLifeTime(5000000);
         buildParams(request);
         ApiManager.cmsServiceApi().getMenuList(request.createRequestBody())
                 .map(MainActivity.<HttpResponse<List<MenuBean>>>handleFunction())

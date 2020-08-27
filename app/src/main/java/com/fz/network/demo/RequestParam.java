@@ -1,5 +1,6 @@
 package com.fz.network.demo;
 
+
 import com.fz.network.params.VpRequestParams;
 
 import java.io.File;
@@ -12,7 +13,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
-
 
 /**
  * 公共基本请求参数
@@ -59,7 +59,7 @@ public class RequestParam extends VpRequestParams {
         //购物车优惠券与价格明细同步其他接口
         data.put("appsFlyerUID", "1560152354316-3505768219074339794");
         String userAgent = System.getProperty("http.agent");
-        addHeader("User-Agent", userAgent+"RequestFlag/Push");
+        addHeader("User-Agent", userAgent + "RequestFlag/Push");
     }
 
     public RequestParam(String key, Object value) {
@@ -83,9 +83,18 @@ public class RequestParam extends VpRequestParams {
         this.hasData = hasData;
     }
 
+    /**
+     * 创建一个是否支持读写缓存的构造函数；
+     *
+     * @param isReadCache 是否可读写缓存
+     * @author dingpeihua
+     * @date 2019/9/2 15:33
+     * @version 1.0
+     */
     public RequestParam(boolean isReadCache) {
         this(true, isReadCache);
     }
+
 
     public void put(String key, double value) {
         if (key != null) {
