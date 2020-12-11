@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package retrofit2.adapter.rxjava2;
+package retrofit2.adapter.rxjava3;
 
 import androidx.annotation.Nullable;
 
-import io.reactivex.BackpressureStrategy;
-import io.reactivex.Observable;
-import io.reactivex.Scheduler;
-import io.reactivex.plugins.RxJavaPlugins;
 import java.lang.reflect.Type;
+
+import io.reactivex.rxjava3.core.BackpressureStrategy;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Scheduler;
+import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 import retrofit2.Call;
 import retrofit2.CallAdapter;
 import retrofit2.Response;
 
-final class RxJava2CallAdapter<R> implements CallAdapter<R, Object> {
+final class RxJava3CallAdapter<R> implements CallAdapter<R, Object> {
   private final Type responseType;
   private final @Nullable
   Scheduler scheduler;
@@ -38,9 +39,9 @@ final class RxJava2CallAdapter<R> implements CallAdapter<R, Object> {
   private final boolean isMaybe;
   private final boolean isCompletable;
 
-  RxJava2CallAdapter(Type responseType, @Nullable Scheduler scheduler, boolean isAsync,
-      boolean isResult, boolean isBody, boolean isFlowable, boolean isSingle, boolean isMaybe,
-      boolean isCompletable) {
+  RxJava3CallAdapter(Type responseType, @Nullable Scheduler scheduler, boolean isAsync,
+                     boolean isResult, boolean isBody, boolean isFlowable, boolean isSingle, boolean isMaybe,
+                     boolean isCompletable) {
     this.responseType = responseType;
     this.scheduler = scheduler;
     this.isAsync = isAsync;

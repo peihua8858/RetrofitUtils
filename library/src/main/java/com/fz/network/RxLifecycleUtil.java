@@ -3,15 +3,15 @@ package com.fz.network;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
 
-import com.uber.autodispose.AutoDispose;
-import com.uber.autodispose.AutoDisposeConverter;
-import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider;
-import com.uber.autodispose.lifecycle.CorrespondingEventsFunction;
-import com.uber.autodispose.lifecycle.LifecycleEndedException;
 
-import io.reactivex.FlowableTransformer;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
+import autodispose2.AutoDispose;
+import autodispose2.AutoDisposeConverter;
+import autodispose2.androidx.lifecycle.AndroidLifecycleScopeProvider;
+import autodispose2.lifecycle.CorrespondingEventsFunction;
+import autodispose2.lifecycle.LifecycleEndedException;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.FlowableTransformer;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 /**
  * RxJava生命周期处理
@@ -25,11 +25,8 @@ public final class RxLifecycleUtil {
             lastEvent -> {
                 switch (lastEvent) {
                     case ON_CREATE:
-                        return Lifecycle.Event.ON_DESTROY;
                     case ON_START:
-                        return Lifecycle.Event.ON_DESTROY;
                     case ON_RESUME:
-                        return Lifecycle.Event.ON_DESTROY;
                     case ON_PAUSE:
                         return Lifecycle.Event.ON_DESTROY;
                     case ON_STOP:

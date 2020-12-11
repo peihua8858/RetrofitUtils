@@ -19,7 +19,7 @@ import okhttp3.OkHttpClient;
 import retrofit2.CallAdapter;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+import retrofit2.adapter.rxjava3.RxJava3CallAdapterFactory;
 
 /**
  * https retrofit 构建，解决多域名需要创建多个实例的问题
@@ -184,7 +184,7 @@ public class RetrofitClient {
             factory = this.mFactory != null ? this.mFactory : GsonConverterFactory.create(GsonFactory.createBuild(typeAdapters), mediaType);
         }
         if (adapterFactory == null) {
-            adapterFactory = this.mAdapterFactory != null ? mAdapterFactory : RxJava2CallAdapterFactory.create();
+            adapterFactory = this.mAdapterFactory != null ? mAdapterFactory : RxJava3CallAdapterFactory.create();
         }
         return createRetrofit(host, okHttpClient, factory, adapterFactory);
     }

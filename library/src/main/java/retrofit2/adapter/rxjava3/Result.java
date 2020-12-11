@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package retrofit2.adapter.rxjava2;
+package retrofit2.adapter.rxjava3;
 
 import androidx.annotation.Nullable;
 

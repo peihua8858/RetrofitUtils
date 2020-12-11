@@ -1,23 +1,11 @@
-/*
- * Copyright (C) Globalegrow E-Commerce Co. , Ltd. 2007-2018.
- * All rights reserved.
- * This software is the confidential and proprietary information
- * of Globalegrow E-Commerce Co. , Ltd. ("Confidential Information").
- * You shall not disclose such Confidential Information and shall
- * use it only in accordance with the terms of the license agreement
- * you entered into with Globalegrow.
- */
-
 package com.fz.network.utils;
 
 import android.app.Activity;
 import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 
 import androidx.fragment.app.Fragment;
 
-import com.socks.library.KLog;
+import com.fz.common.network.NetworkType;
 
 
 /**
@@ -87,7 +75,7 @@ public final class NetworkUtil {
      * @version 1.0
      */
     public static boolean isConnectedWifi() {
-        return Connectivity.isConnectedWifi(mContext);
+        return com.fz.common.network.NetworkUtil.isConnectedWifi(mContext);
     }
 
     /**
@@ -98,7 +86,7 @@ public final class NetworkUtil {
      * @version 1.0
      */
     public static boolean isConnectedMobile() {
-        return Connectivity.isConnectedMobile(mContext);
+        return com.fz.common.network.NetworkUtil.isConnectedMobile(mContext);
     }
 
     /**
@@ -110,18 +98,6 @@ public final class NetworkUtil {
      */
     public static boolean isConnected() {
         return isNetAvailable(mContext);
-    }
-
-    /**
-     * 检测网络是否连接
-     *
-     * @param isDefault 默认返回
-     * @author dingpeihua
-     * @date 2016/10/19 16:42
-     * @version 1.0
-     */
-    public static boolean isConnected(boolean isDefault) {
-        return isNetAvailable(mContext, isDefault);
     }
 
 
@@ -139,41 +115,23 @@ public final class NetworkUtil {
         return false;
     }
 
-    /**
-     * 检测网络是否连接
-     *
-     * @author dingpeihua
-     * @date 2016/10/19 16:42
-     * @version 1.0
-     */
-    public static boolean isConnected(Context context) {
-        return isNetAvailable(context);
-    }
 
     /**
      * 检测网络是否连接
      * @param context
-     * @param isDefault 默认返回
      * @return
      */
-    public static boolean isNetAvailable(Context context, boolean isDefault) {
-        return Connectivity.isNetAvailable(context, isDefault);
+    public static boolean isNetAvailable(Context context) {
+        return com.fz.common.network.NetworkUtil.isConnected(context);
     }
 
-    public static boolean isNetAvailable(Context context) {
-        return Connectivity.isNetAvailable(context, false);
-    }
 
     public static boolean isConnectedFast() {
-        return Connectivity.isConnectedFast(mContext);
+        return com.fz.common.network.NetworkUtil.isConnectionFast(mContext);
     }
 
 
     public static NetworkType getNetworkType(Context context) {
-        return Connectivity.getNetworkType(context);
-    }
-
-    public static NetworkType getNetworkType(NetworkInfo info) {
-        return Connectivity.getNetworkType(info);
+        return com.fz.common.network.NetworkUtil.getNetworkType(context);
     }
 }

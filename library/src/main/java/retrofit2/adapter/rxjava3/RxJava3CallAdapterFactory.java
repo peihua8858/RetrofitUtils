@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package retrofit2.adapter.rxjava2;
+package retrofit2.adapter.rxjava3;
 
 import androidx.annotation.Nullable;
 
-import io.reactivex.Completable;
-import io.reactivex.Flowable;
-import io.reactivex.Maybe;
-import io.reactivex.Observable;
-import io.reactivex.Scheduler;
-import io.reactivex.Single;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Scheduler;
+import io.reactivex.rxjava3.core.Single;
 import retrofit2.CallAdapter;
 import retrofit2.HttpException;
 import retrofit2.Response;
@@ -56,21 +57,21 @@ import retrofit2.Retrofit;
  * {@link Result} object for all HTTP responses and errors.</li>
  * </ul>
  */
-public final class RxJava2CallAdapterFactory extends CallAdapter.Factory {
+public final class RxJava3CallAdapterFactory extends CallAdapter.Factory {
   /**
    * Returns an instance which creates synchronous observables that do not operate on any scheduler
    * by default.
    */
-  public static RxJava2CallAdapterFactory create() {
-    return new RxJava2CallAdapterFactory(null, false);
+  public static RxJava3CallAdapterFactory create() {
+    return new RxJava3CallAdapterFactory(null, false);
   }
 
   /**
    * Returns an instance which creates asynchronous observables. Applying
    * {@link Observable#subscribeOn} has no effect on stream types created by this factory.
    */
-  public static RxJava2CallAdapterFactory createAsync() {
-    return new RxJava2CallAdapterFactory(null, true);
+  public static RxJava3CallAdapterFactory createAsync() {
+    return new RxJava3CallAdapterFactory(null, true);
   }
 
   /**
@@ -78,16 +79,16 @@ public final class RxJava2CallAdapterFactory extends CallAdapter.Factory {
    * {@linkplain Observable#subscribeOn(Scheduler) subscribe on} {@code scheduler} by default.
    */
   @SuppressWarnings("ConstantConditions") // Guarding public API nullability.
-  public static RxJava2CallAdapterFactory createWithScheduler(Scheduler scheduler) {
+  public static RxJava3CallAdapterFactory createWithScheduler(Scheduler scheduler) {
     if (scheduler == null) throw new NullPointerException("scheduler == null");
-    return new RxJava2CallAdapterFactory(scheduler, false);
+    return new RxJava3CallAdapterFactory(scheduler, false);
   }
 
   private final @Nullable
   Scheduler scheduler;
   private final boolean isAsync;
 
-  private RxJava2CallAdapterFactory(@Nullable Scheduler scheduler, boolean isAsync) {
+  private RxJava3CallAdapterFactory(@Nullable Scheduler scheduler, boolean isAsync) {
     this.scheduler = scheduler;
     this.isAsync = isAsync;
   }
@@ -99,7 +100,7 @@ public final class RxJava2CallAdapterFactory extends CallAdapter.Factory {
     if (rawType == Completable.class) {
       // Completable is not parameterized (which is what the rest of this method deals with) so it
       // can only be created with a single configuration.
-      return new RxJava2CallAdapter(Void.class, scheduler, isAsync, false, true, false, false,
+      return new RxJava3CallAdapter(Void.class, scheduler, isAsync, false, true, false, false,
           false, true);
     }
 
@@ -141,7 +142,7 @@ public final class RxJava2CallAdapterFactory extends CallAdapter.Factory {
       isBody = true;
     }
 
-    return new RxJava2CallAdapter(responseType, scheduler, isAsync, isResult, isBody, isFlowable,
+    return new RxJava3CallAdapter(responseType, scheduler, isAsync, isResult, isBody, isFlowable,
         isSingle, isMaybe, false);
   }
 }

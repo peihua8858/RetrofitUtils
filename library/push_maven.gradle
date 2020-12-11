@@ -5,8 +5,8 @@ def mavenUrl = "http://" + maven_address + "/repository/globalegrow/"
 def mavenUrlSnapshot = "http://" + maven_address + "/repository/globalegrow-snapshot/"
 def mavenUserName = "longxl"
 def mavenPwd = "longxl123"
-def sdkVersionName = "1.2.6"
-def sdkVersionNameSnapshot = "1.2.6.9-SNAPSHOT"
+def sdkVersionName = "1.3.0"
+def sdkVersionNameSnapshot = "1.3.0-SNAPSHOT"
 def pomName = "Network"
 def pomGroupId = "com.fz.network"
 def pomArtifactId = "Network"
@@ -38,7 +38,7 @@ tasks.withType(Javadoc) {
 
 artifacts {
     archives androidSourcesJar
-    archives androidJavadocsJar
+//    archives androidJavadocsJar
 }
 uploadArchives {
     repositories {

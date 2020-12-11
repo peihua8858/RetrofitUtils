@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package retrofit2.adapter.rxjava2;
+package retrofit2.adapter.rxjava3;
 
 import com.fz.network.cache.ICacheResponse;
-import com.fz.network.utils.NetworkUtil;
 
-import io.reactivex.Observable;
-import io.reactivex.Observer;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.exceptions.CompositeException;
-import io.reactivex.exceptions.Exceptions;
-import io.reactivex.plugins.RxJavaPlugins;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Observer;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.exceptions.CompositeException;
+import io.reactivex.rxjava3.exceptions.Exceptions;
+import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 import retrofit2.Call;
 import retrofit2.Response;
 
 import com.fz.network.cache.HttpCacheManager;
+import com.fz.network.utils.NetworkUtil;
 
 /**
  * app缓存处理，如果请求参数中有参数isOpenCache为true，则会先读取缓存数据，再请求网络
@@ -57,7 +57,7 @@ final class CallExecuteObservable<T> extends Observable<Response<T>> {
         }
         Call<T> call2 = originalCall.clone();
         Response<T> response = HttpCacheManager.instance().get(call2);
-        if (NetworkUtil.isConnected(true)) {
+        if (NetworkUtil.isConnected()) {
             if (response != null) {
                 if (!disposable.isDisposed()) {
                     observer.onNext(response);
