@@ -1,8 +1,8 @@
 package com.fz.network.demo;
 
-import com.fz.network.interceptor.TimeoutInterceptor;
 import com.fz.network.remote.BasicDataManager;
 import com.fz.networklog.NetLoggingInterceptor;
+import com.fz.okhttp.interceptor.TimeoutInterceptor;
 
 import java.util.concurrent.TimeUnit;
 

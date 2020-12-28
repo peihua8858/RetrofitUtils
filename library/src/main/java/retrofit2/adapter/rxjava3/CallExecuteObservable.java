@@ -15,6 +15,7 @@
  */
 package retrofit2.adapter.rxjava3;
 
+import com.fz.common.network.NetworkUtil;
 import com.fz.network.cache.ICacheResponse;
 
 import io.reactivex.rxjava3.core.Observable;
@@ -27,7 +28,6 @@ import retrofit2.Call;
 import retrofit2.Response;
 
 import com.fz.network.cache.HttpCacheManager;
-import com.fz.network.utils.NetworkUtil;
 
 /**
  * app缓存处理，如果请求参数中有参数isOpenCache为true，则会先读取缓存数据，再请求网络

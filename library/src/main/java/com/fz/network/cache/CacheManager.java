@@ -17,7 +17,7 @@ import android.text.TextUtils;
 
 import androidx.core.content.pm.PackageInfoCompat;
 
-import com.fz.network.utils.NetworkUtil;
+import com.fz.common.network.NetworkUtil;
 import com.socks.library.KLog;
 
 import java.io.ByteArrayOutputStream;
@@ -100,7 +100,7 @@ public class CacheManager {
         if (TextUtils.isEmpty(cachePath)) {
             cachePath = CacheUtil.getDiskCacheDir(context, APP_DISK_CACHE_CONFIG, DISK_CACHE_CONFIG);
         }
-        NetworkUtil.initNetwork(context);
+        NetworkUtil.init(context);
         if (cacheManager == null) {
             synchronized (CacheManager.class) {
                 if (cacheManager == null) {

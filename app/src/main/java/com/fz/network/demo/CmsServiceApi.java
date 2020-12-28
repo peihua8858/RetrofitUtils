@@ -2,7 +2,7 @@ package com.fz.network.demo;
 
 import java.util.List;
 
-import io.reactivex.Flowable;
+import io.reactivex.rxjava3.core.Flowable;
 import okhttp3.RequestBody;
 import retrofit2.Response;
 import retrofit2.http.Body;

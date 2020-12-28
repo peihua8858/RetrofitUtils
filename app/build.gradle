@@ -4,11 +4,14 @@ android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.fz.network.demo"
-        minSdkVersion 18
+        minSdkVersion 21
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    dataBinding {
+        enabled = true
     }
     buildTypes {
         release {
@@ -48,4 +51,7 @@ dependencies {
     implementation "io.reactivex.rxjava3:rxjava:3.0.6"
     implementation "com.fz.klog:Klog:1.0.3"
     implementation "com.fz.okhttp:OkHttpWrapper:1.0.7-SNAPSHOT"
+    implementation 'com.fz.commutil:commutil:1.0.0-SNAPSHOT'
+    implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:3.0.4'
+    implementation "org.greenrobot:eventbus:3.2.0"
 }

@@ -5,41 +5,40 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.databinding.DataBindingUtil;
 
+import com.fz.common.network.NetworkUtil;
 import com.fz.network.cache.CacheManager;
-import com.fz.network.utils.NetworkUtil;
+import com.fz.network.demo.databinding.ActivityMainBinding;
 import com.socks.library.KLog;
 
 import java.io.File;
 import java.util.List;
 
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Function;
-import io.reactivex.schedulers.Schedulers;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.functions.Function;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import retrofit2.HttpException;
 import retrofit2.Response;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends DataBindingBaseActivity<ActivityMainBinding> {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mBinding.btnAddressList.setOnClickListener(this::onClick);
+        mBinding.unbind();
         String networkDiskCacheDir = new File(getExternalCacheDir(), "netWork").getAbsolutePath();
         CacheManager.initCacheManager(this, networkDiskCacheDir);
-        NetworkUtil.initNetwork(this);
+        NetworkUtil.init(this);
     }
 
     public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.btn_cms_data:
-                requestCmsData();
-                break;
-            case R.id.btn_address_list:
-                requestAddressList();
-                break;
-            default:
-                break;
+        if (view.getId() == R.id.btn_cms_data) {
+            requestCmsData();
+        } else if (view.getId() == R.id.btn_address_list) {
+
         }
     }
 

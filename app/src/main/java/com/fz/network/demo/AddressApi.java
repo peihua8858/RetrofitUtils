@@ -1,7 +1,7 @@
 package com.fz.network.demo;
 
 
-import io.reactivex.Flowable;
+import io.reactivex.rxjava3.core.Flowable;
 import okhttp3.RequestBody;
 import retrofit2.http.Body;
 import retrofit2.http.POST;
