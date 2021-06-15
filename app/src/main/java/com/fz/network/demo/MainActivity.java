@@ -4,8 +4,6 @@ import android.os.Bundle;
 import android.view.View;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.databinding.DataBindingUtil;
 
 import com.fz.common.network.NetworkUtil;
 import com.fz.network.cache.CacheManager;
@@ -27,8 +25,6 @@ public class MainActivity extends DataBindingBaseActivity<ActivityMainBinding> {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mBinding.btnAddressList.setOnClickListener(this::onClick);
-        mBinding.unbind();
         String networkDiskCacheDir = new File(getExternalCacheDir(), "netWork").getAbsolutePath();
         CacheManager.initCacheManager(this, networkDiskCacheDir);
         NetworkUtil.init(this);

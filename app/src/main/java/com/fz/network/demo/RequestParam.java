@@ -98,27 +98,27 @@ public class RequestParam extends VpRequestParams {
 
     public void put(String key, double value) {
         if (key != null) {
-            this.urlParams.put(key, String.valueOf(value));
+//            this.urlParams.put(key, String.valueOf(value));
         }
     }
 
     public void setHasData(boolean hasData) {
         this.hasData = hasData;
     }
-
-    @Override
-    public RequestParam put(String key, Object value) {
-        checkValue(value);
-        super.put(key, value);
-        return this;
-    }
-
-    boolean checkValue(Object value) {
-        if (value instanceof org.json.JSONArray || value instanceof org.json.JSONObject) {
-            throw new IllegalArgumentException("Value can not be org.json.JSONArray or org.json.JSONObject");
-        }
-        return true;
-    }
+//
+//    @Override
+//    public RequestParam put(String key, Object value) {
+//        checkValue(value);
+//        super.put(key, value);
+//        return this;
+//    }
+//
+//    boolean checkValue(Object value) {
+//        if (value instanceof org.json.JSONArray || value instanceof org.json.JSONObject) {
+//            throw new IllegalArgumentException("Value can not be org.json.JSONArray or org.json.JSONObject");
+//        }
+//        return true;
+//    }
 
     /**
      * put data 数据
@@ -135,30 +135,30 @@ public class RequestParam extends VpRequestParams {
     public RequestBody createRequestBody() {
         /**
          * 针对 zaful 的 请求 数据 data 的封装
-         */
-        clearNull();
-        combineMap(urlParams, data);
-        clearNull();
-        //如果请求参数包括data字段，则需要将data集合中的数据放到data字段下
-        if (hasData) {
-            HashMap<String, Object> params = new HashMap<>();
-            params.put("data", data);
-            urlParams.clear();
-            urlParams.putAll(params);
-        }
-        urlParams.putAll(publicParams);
+//         */
+//        clearNull();
+//        combineMap(urlParams, data);
+//        clearNull();
+//        //如果请求参数包括data字段，则需要将data集合中的数据放到data字段下
+//        if (hasData) {
+//            HashMap<String, Object> params = new HashMap<>();
+//            params.put("data", data);
+//            urlParams.clear();
+//            urlParams.putAll(params);
+//        }
+//        urlParams.putAll(publicParams);
         return super.createRequestBody();
     }
 
     private void clearNull() {
-        Iterator<String> it = urlParams.keySet().iterator();
-        while (it.hasNext()) {
-            String key = it.next();
-            Object value = urlParams.get(key);
-            if (value == null) {
-                urlParams.remove(key);
-            }
-        }
+//        Iterator<String> it = urlParams.keySet().iterator();
+//        while (it.hasNext()) {
+//            String key = it.next();
+//            Object value = urlParams.get(key);
+//            if (value == null) {
+//                urlParams.remove(key);
+//            }
+//        }
     }
 
     /**
@@ -182,7 +182,7 @@ public class RequestParam extends VpRequestParams {
 
     @Override
     public MultipartBody createFileRequestBody() {
-        urlParams.putAll(publicParams);
+//        urlParams.putAll(publicParams);
         return super.createFileRequestBody();
     }
 
