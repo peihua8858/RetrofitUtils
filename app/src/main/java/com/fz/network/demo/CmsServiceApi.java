@@ -48,13 +48,4 @@ public interface CmsServiceApi {
      */
     @POST(URL_GET_CMS_PAGE_DATA)
     Flowable<Response<HttpResponse<List<MenuData>>>> getCmsPageData(@Body RequestBody request);
-
-    /**
-     * 获取cms备份数据
-     *
-     * @param url
-     * @return
-     */
-    @GET
-    Flowable<Response<HttpResponse<List<MenuBean>>>> getCmsZafulData(@Url String url);
 }

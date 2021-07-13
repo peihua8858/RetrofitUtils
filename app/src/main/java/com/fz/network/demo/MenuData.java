@@ -55,7 +55,6 @@ public class MenuData implements IAttribute, Parcelable {
     public Attribute attributes;
     public List<MenuListData> list;
     /**
-     * 推荐商品接口类型，0为请求大数据推荐商品，其他则请求zaful商品列表
      */
     public String recommendType;
     /**

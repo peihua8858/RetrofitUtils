@@ -133,9 +133,6 @@ public class RequestParam extends VpRequestParams {
 
     @Override
     public RequestBody createRequestBody() {
-        /**
-         * 针对 zaful 的 请求 数据 data 的封装
-//         */
 //        clearNull();
 //        combineMap(urlParams, data);
 //        clearNull();

@@ -31,11 +31,13 @@ dependencies {
     implementation "com.squareup.okhttp3:okhttp:4.9.0"
     implementation "com.squareup.okio:okio:2.9.0"
     implementation "com.github.franmontiel:PersistentCookieJar:v1.0.0"
-    implementation "com.fz.networklog:NetworkLog:1.1.1"
     implementation "com.google.code.gson:gson:2.8.6"
-    implementation "com.fz.gson:GsonAdapter:1.0.3"
-    compileOnly ("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation "com.fz.okhttp:OkHttpWrapper:1.0.14-SNAPSHOT"
-    implementation 'com.fz.commutil:commutil:1.0.0'
+    implementation 'com.github.peihua8858:GsonAdapter:1.0.0'
+    implementation "com.squareup.retrofit2:retrofit:2.9.0"
+    implementation 'com.github.peihua8858:OkHttpWrapper:1.0.0'
+    implementation 'com.github.peihua8858:kotlinCommonUtils:1.0.0'
+    implementation 'com.github.peihua8858:PreferenceManager:1.0.0'
 }
-apply from: "push_maven.gradle"
+//apply from: "push_maven.gradle"
+apply plugin: 'com.github.dcendents.android-maven'
+group='com.github.peihua8858'

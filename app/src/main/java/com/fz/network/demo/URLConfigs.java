@@ -1,7 +1,5 @@
 package com.fz.network.demo;
 
-import com.fz.network.BuildConfig;
-
 /**
  * app域名配置
  *
@@ -12,10 +10,8 @@ import com.fz.network.BuildConfig;
 public class URLConfigs {
     /**
      * 正式环境
-     * https://testapp.zaful.com/
-     * https://app.zaful.com/
      */
-    static final String R_HOST = "https://app.zaful.com/";
+    static final String R_HOST = "https://10.8.31.5:8090/";
     public static final String HOST;
 
 
@@ -25,12 +21,11 @@ public class URLConfigs {
     public final static String API_HOST_URL;
 
 
-    public static final String URL_CMS_R_HOST = "http://www.cms.com.release.php7.egomsl.com/api/";//"https://cms.glosop.com/api/";
+    public static final String URL_CMS_R_HOST = "http://10.8.31.5:8090/api/";
     public static final String URL_CMS_HOST;
 
     /**
      * api版本字符
-     * https://app.zaful.com/api_android/4.7.0/address/get_address_list
      */
     public static final String API_VERSION = "api_android/4.7.0//";
 
