@@ -72,59 +72,24 @@
 ```java
    CacheManager.initCacheManager(context, "mnt/cache/network/");
 ```
-### 6、网络日志
-```java 
-    OKHttpBuilder.newBuilder(MainApplication.getContext())
-             .netLogInterceptor(new NetLoggingInterceptor.OnDynamicParamCallback() {
-                            @Override
-                            public String getVersionName() {
-                                return BuildConfig.VERSION_NAME;
-                            }
-
-                            @Override
-                            public String getLogTag() {
-                                return "Android-Demo";
-                            }
-
-                            @Override
-                            public String getServiceIp() {
-                                return "10.36.5.100";
-                            }
-                        }) .build();
-     或者
-     OKHttpBuilder.newBuilder(MainApplication.getContext())
-             .addInterceptor(new NetLoggingInterceptor(new NetLoggingInterceptor.OnDynamicParamCallback() {
-                            @Override
-                            public String getVersionName() {
-                                 return BuildConfig.VERSION_NAME;
-                            }
-
-                            @Override
-                            public String getLogTag() {
-                                 return "Android-Demo";
-                            }
-
-                            @Override
-                            public String getServiceIp() {
-                                return "10.36.5.100";
-                            }
-                        })) .build();
-```
 ## 添加存储库
 
 ```py
- repositories {
-        maven { url 'http://10.36.5.100:8081/repository/maven-public/' }
-    }
+ allprojects {
+ 		repositories {
+ 			...
+ 			maven { url 'https://jitpack.io' }
+ 		}
+ 	}
 ```
 
 ## 添加依赖
 
 ```py
 dependencies {
-    implementation "com.fz.network:Network:1.2.5"
-    implementation "com.squareup.retrofit2:retrofit:2.5.0"
-}
+            implementation "com.squareup.retrofit2:retrofit:2.9.0"
+	        implementation 'com.github.peihua8858:OkHttpWrapper:Tag'
+	}
 ```
 
 
