@@ -1,3 +1,4 @@
+[![](https://jitpack.io/v/peihua8858/RetrofitUtils.svg)](https://jitpack.io/#peihua8858/RetrofitUtils)
 # Android 基于Retrofit+Okhttp+Rxjava2的网络请求框架
 ## 功能介绍
 ### 1、网络请求
