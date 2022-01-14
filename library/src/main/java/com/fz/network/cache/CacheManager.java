@@ -1,13 +1,3 @@
-/*
- * Copyright (C) Globalegrow E-Commerce Co. , Ltd. 2007-2020.
- * All rights reserved.
- * This software is the confidential and proprietary information
- * of Globalegrow E-Commerce Co. , Ltd. ("Confidential Information").
- * You shall not disclose such Confidential Information and shall
- * use it only in accordance with the terms of the license agreement
- * you entered into with Globalegrow.
- */
-
 package com.fz.network.cache;
 
 import android.content.Context;
@@ -64,8 +54,15 @@ public class CacheManager {
     private static final long DEFAULT_LIFE_TIME = -1L;
     private DiskLruCache mDiskLruCache;
     private static CacheManager cacheManager;
+    private Context context;
+    private String cachePath;
 
     private CacheManager(Context context, String cachePath) {
+        this.context = context.getApplicationContext();
+        this.cachePath = cachePath;
+    }
+
+    private synchronized void initCache(Context context, String cachePath) {
         File diskCacheDir = new File(cachePath);
         if (!diskCacheDir.exists()) {
             boolean b = diskCacheDir.mkdirs();
@@ -120,8 +117,7 @@ public class CacheManager {
      */
     public synchronized void putCache(String key, String value, long lifeTime) {
         if (mDiskLruCache == null) {
-            KLog.e(TAG, "DiskLruCache not initialized!");
-            return;
+            initCache(context, cachePath);
         }
         OutputStream os = null;
         try {
@@ -159,7 +155,7 @@ public class CacheManager {
     public String getCache(String key) {
         if (mDiskLruCache == null) {
             KLog.e(TAG, "DiskLruCache not initialized!");
-            return null;
+            initCache(context, cachePath);
         }
         FileInputStream fis = null;
         ByteArrayOutputStream bos = null;
