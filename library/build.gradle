@@ -36,7 +36,7 @@ dependencies {
     implementation 'com.github.peihua8858:GsonAdapter:1.0.0'
     implementation "com.squareup.retrofit2:retrofit:2.9.0"
     implementation 'com.github.peihua8858:OkHttpWrapper:1.0.3'
-    implementation 'com.github.peihua8858:kotlinCommonUtils:1.0.17'
+    implementation 'com.github.peihua8858:kotlinCommonUtils:1.0.18'
     implementation 'com.github.peihua8858:PreferenceManager:1.0.1'
 }
 //apply from: "push_maven.gradle"
