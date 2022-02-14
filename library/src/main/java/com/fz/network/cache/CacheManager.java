@@ -63,6 +63,10 @@ public class CacheManager {
     }
 
     private synchronized void initCache(Context context, String cachePath) {
+        if (TextUtils.isEmpty(cachePath)) {
+            cachePath = CacheUtil.getDiskCacheDir(context, APP_DISK_CACHE_CONFIG, DISK_CACHE_CONFIG);
+            this.cachePath = cachePath;
+        }
         File diskCacheDir = new File(cachePath);
         if (!diskCacheDir.exists()) {
             boolean b = diskCacheDir.mkdirs();
@@ -94,9 +98,6 @@ public class CacheManager {
     }
 
     public static CacheManager initCacheManager(Context context, String cachePath) {
-        if (TextUtils.isEmpty(cachePath)) {
-            cachePath = CacheUtil.getDiskCacheDir(context, APP_DISK_CACHE_CONFIG, DISK_CACHE_CONFIG);
-        }
         NetworkUtil.init(context);
         if (cacheManager == null) {
             synchronized (CacheManager.class) {
