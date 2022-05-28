@@ -1,6 +1,7 @@
 package com.fz.network.cache
 
 import com.fz.common.text.isNonEmpty
+import com.fz.common.utils.dLog
 import com.fz.common.utils.eLog
 import com.fz.gson.GsonFactory
 import com.fz.network.params.VpRequestParams
@@ -8,7 +9,6 @@ import com.fz.okhttp.params.OkRequestParams.Companion.asRequestParams
 import com.google.gson.Gson
 import com.google.gson.TypeAdapter
 import com.google.gson.reflect.TypeToken
-import com.socks.library.KLog
 import okhttp3.ResponseBody.Companion.toResponseBody
 import java.io.*
 import java.net.URLEncoder
@@ -19,7 +19,7 @@ import java.net.URLEncoder
  * @date 2021/4/6 14:29
  * @version 1.0
  */
-class KotlinCacheEx {
+object KotlinCacheEx {
     @Throws(IOException::class)
     private fun buildCacheKey(httpUrl: String, requestContent: String): String {
         //创建缓存key
@@ -39,6 +39,7 @@ class KotlinCacheEx {
      * @date 2019/10/26 9:26
      * @version 1.0
      */
+    @JvmStatic
     fun <T> saveCache(url: String, request: VpRequestParams?, response: T?, lifeTime: Long): Boolean {
         if (request != null && response != null) {
             try {
@@ -48,12 +49,14 @@ class KotlinCacheEx {
                 if (responseStr.isNonEmpty() && requestStr.isNonEmpty()) {
                     val cacheKey = buildCacheKey(url, requestStr)
                     CacheManager.getInstance().putCache(cacheKey, responseStr, lifeTime)
+                    dLog { "KotlinCacheEx>>>缓存数据成功。" }
                     return true
                 }
             } catch (e: Exception) {
-                eLog { e.stackTraceToString() }
+                eLog { "KotlinCacheEx>>>" + e.stackTraceToString() }
             }
         }
+        dLog { "KotlinCacheEx>>>缓存数据失败。" }
         return false
     }
 
@@ -67,29 +70,32 @@ class KotlinCacheEx {
      * @date 2019/10/26 9:26
      * @version 1.0
      */
-    fun <T> readCache(url: String, request: VpRequestParams?, clazz: Class<T>): T? {
-        if (CacheManager.isInitCache() && request != null) {
+    @JvmStatic
+    fun <T> readCache(url: String, request: VpRequestParams?, typeToken: TypeToken<T>): T? {
+        if (CacheManager.isInitCache()) {
             try {
-                val requestStr = request.asRequestParams()
+                val requestStr = request?.asRequestParams() ?: ""
                 val cacheKey = buildCacheKey(url, requestStr)
                 val content = CacheManager.getInstance().getCache(cacheKey)
-                KLog.d("LockCacheManage读取>>>cacheKey:$cacheKey")
+                dLog { "KotlinCacheEx读取成功>>>cacheKey:$cacheKey" }
+                dLog { "KotlinCacheEx读取成功>>>content:$content" }
                 if (content.isNonEmpty()) {
                     return content.toResponseBody().use {
                         ByteArrayInputStream(it.bytes()).use { bis ->
                             BufferedReader(InputStreamReader(bis)).use { reader ->
                                 val gson = GsonFactory.create()
                                 val jsonReader = gson!!.newJsonReader(reader)
-                                val adapter: TypeAdapter<T> = gson.getAdapter(TypeToken.get(clazz))
+                                val adapter: TypeAdapter<T> = gson.getAdapter(typeToken)
                                 adapter.read(jsonReader)
                             }
                         }
                     }
                 }
             } catch (e: Exception) {
-                eLog { e.stackTraceToString() }
+                eLog { "KotlinCacheEx>>>" + e.stackTraceToString() }
             }
         }
+        dLog { "KotlinCacheEx读取失败>>>" }
         return null
     }
 }
