@@ -190,12 +190,7 @@ class RetrofitClient private constructor(
     ): Retrofit {
         val factory1 = factory ?: mFactory
         ?: create(GsonFactory.createBuild(typeAdapters), mediaType ?: MEDIA_TYPE)
-        val adapterFactory1 = adapterFactory
-            ?: mAdapterFactory ?: null
-        Objects.requireNonNull(adapterFactory1, "")
-        if (adapterFactory1 == null) {
-            throw NullPointerException("adapterFactory == null")
-        }
+        val adapterFactory1 = adapterFactory ?: mAdapterFactory
         return createRetrofit(host, okHttpClient, factory1, adapterFactory1)
     }
 
@@ -209,15 +204,19 @@ class RetrofitClient private constructor(
      */
     private fun createRetrofit(
         host: String?, okHttpClient: OkHttpClient?,
-        factory: Converter.Factory,
-        adapterFactory: CallAdapter.Factory,
+        factory: Converter.Factory?,
+        adapterFactory: CallAdapter.Factory?,
     ): Retrofit {
-        return Retrofit.Builder()
+        val builder = Retrofit.Builder()
             .baseUrl(host ?: mBaseUrl)
             .client(okHttpClient ?: mOkHttpClient)
-            .addConverterFactory(factory)
-            .addCallAdapterFactory(adapterFactory)
-            .build()
+        if (factory != null) {
+            builder.addConverterFactory(factory)
+        }
+        if (adapterFactory != null) {
+            builder.addCallAdapterFactory(adapterFactory)
+        }
+        return builder.build()
     }
 
     /**
