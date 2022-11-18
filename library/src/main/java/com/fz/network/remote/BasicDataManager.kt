@@ -20,6 +20,7 @@ import java.lang.reflect.Type
 open class BasicDataManager protected constructor(client: RetrofitClient) {
     private var mClient: RetrofitClient = client
 
+    @JvmOverloads
     protected constructor(
         httpClient: OkHttpClient, baseUrl: String = "",
         adapterFactory: CallAdapter.Factory? = null,
@@ -34,6 +35,7 @@ open class BasicDataManager protected constructor(client: RetrofitClient) {
     ) {
     }
 
+    @JvmOverloads
     protected constructor(
         httpClient: OkHttpWrapper,
         baseUrl: String = "",
