@@ -1,6 +1,7 @@
 package com.fz.network.demo;
 
 import com.fz.network.remote.BasicDataManager;
+import com.fz.network.remote.GsonConverterFactory;
 import com.fz.networklog.NetLoggingInterceptor;
 import com.fz.okhttp.interceptor.TimeoutInterceptor;
 
