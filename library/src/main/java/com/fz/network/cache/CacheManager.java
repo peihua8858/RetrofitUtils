@@ -98,7 +98,6 @@ public class CacheManager {
     }
 
     public static CacheManager initCacheManager(Context context, String cachePath) {
-        NetworkUtil.init(context);
         if (cacheManager == null) {
             synchronized (CacheManager.class) {
                 if (cacheManager == null) {
