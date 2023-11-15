@@ -89,7 +89,7 @@
 ```py
 dependencies {
             implementation "com.squareup.retrofit2:retrofit:2.9.0"
-	        implementation 'com.github.peihua8858:OkHttpWrapper:Tag'
+	    implementation 'com.github.peihua8858:GsonAdapter:1.0.2'
 	}
 ```
 
