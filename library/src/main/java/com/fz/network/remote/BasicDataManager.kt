@@ -62,20 +62,6 @@ open class BasicDataManager protected constructor(client: RetrofitClient) {
         )
     }
 
-    fun newRetrofit(
-        httpClient: OkHttpWrapper, baseUrl: String,
-        adapterFactory: CallAdapter.Factory? = null,
-        factory: Converter.Factory? = null
-    ) {
-        setRetrofit(
-            RetrofitClient.newBuilder()
-                .setHttpClient(httpClient)
-                .setBaseUrl(baseUrl)
-                .adapter(adapterFactory)
-                .converter(factory)
-                .build()
-        )
-    }
 
     fun setRetrofit(client: RetrofitClient) {
         mClient = client

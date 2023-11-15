@@ -2,7 +2,6 @@ package com.fz.network
 
 import com.fz.gson.GsonFactory
 import com.fz.network.remote.GsonConverterFactory.Companion.create
-import com.fz.okhttp.OkHttpWrapper
 import okhttp3.CookieJar
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
@@ -10,7 +9,6 @@ import okhttp3.OkHttpClient
 import retrofit2.CallAdapter
 import retrofit2.Converter
 import retrofit2.Retrofit
-import java.lang.NullPointerException
 import java.lang.reflect.Type
 import java.util.*
 
@@ -292,11 +290,6 @@ class RetrofitClient private constructor(
             return this
         }
 
-        fun setHttpClient(`val`: OkHttpWrapper): ServiceBuilder<T> {
-            okHttpClient = `val`.build()
-            return this
-        }
-
         fun setHost(`val`: String): ServiceBuilder<T> {
             host = `val`
             return this
@@ -342,11 +335,6 @@ class RetrofitClient private constructor(
 
         fun setHttpClient(httpClient: OkHttpClient): Builder {
             this.httpClient = httpClient
-            return this
-        }
-
-        fun setHttpClient(httpClient: OkHttpWrapper): Builder {
-            this.httpClient = httpClient.build()
             return this
         }
 

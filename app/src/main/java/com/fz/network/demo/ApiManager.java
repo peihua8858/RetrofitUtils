@@ -8,6 +8,7 @@ import com.fz.okhttp.interceptor.TimeoutInterceptor;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
+import retrofit2.adapter.rxjava3.RxJava3CallAdapterFactory;
 
 /**
  * @author tp
@@ -33,11 +34,16 @@ public class ApiManager extends BasicDataManager {
                     }
 
                     @Override
+                    public String getServiceIp() {
+                        return "10.8.31.61";
+                    }
+
+                    @Override
                     public String getAppName() {
                         return "Demo";
                     }
                 }))
-                .build(), URLConfigs.API_HOST_URL);
+                .build(), URLConfigs.API_HOST_URL, RxJava3CallAdapterFactory.create(),GsonConverterFactory.create());
     }
 
     static class InnerHelper {
@@ -49,7 +55,7 @@ public class ApiManager extends BasicDataManager {
     }
 
     public static CmsServiceApi cmsServiceApi() {
-        return newInstance().createApi(CmsServiceApi.class);
+        return newInstance().createApi(URLConfigs.URL_CMS_HOST,CmsServiceApi.class);
     }
 
     public static AddressApi addressApi() {

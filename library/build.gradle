@@ -39,7 +39,6 @@ dependencies {
     implementation "com.squareup.retrofit2:retrofit:2.9.0"
     implementation 'com.github.peihua8858:OkHttpWrapper:1.0.4'
     implementation 'com.github.peihua8858:kotlinCommonUtils:1.1.0'
-    implementation 'com.github.peihua8858:PreferenceManager:1.0.4'
 }
 //apply from: "push_maven.gradle"
 group = 'com.github.peihua8858'

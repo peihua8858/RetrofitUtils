@@ -4,10 +4,10 @@ import android.os.Bundle;
 import android.view.View;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.fz.common.network.NetworkUtil;
 import com.fz.network.cache.CacheManager;
-import com.fz.network.demo.databinding.ActivityMainBinding;
 import com.socks.library.KLog;
 
 import java.io.File;
@@ -19,7 +19,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import retrofit2.HttpException;
 import retrofit2.Response;
 
-public class MainActivity extends DataBindingBaseActivity<ActivityMainBinding> {
+public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,9 +66,9 @@ public class MainActivity extends DataBindingBaseActivity<ActivityMainBinding> {
     void requestCmsData() {
         final RequestParam request = new RequestParam(false, true);
         request.setJsonParams(true);
-        request.connectTimeoutMillis(1000);
-        request.readTimeoutMillis(1000);
-        request.writeTimeoutMillis(1000);
+        request.connectTimeoutMillis(5000);
+        request.readTimeoutMillis(5000);
+        request.writeTimeoutMillis(5000);
         request.setLifeTime(5000000);
         buildParams(request);
         ApiManager.cmsServiceApi().getMenuList(request.createRequestBody())
