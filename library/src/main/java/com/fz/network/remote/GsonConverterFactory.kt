@@ -25,7 +25,7 @@ import java.nio.charset.Charset
  * last to allow the other converters a chance to see their types.
  */
 class GsonConverterFactory private constructor(
-        gson: Gson = GsonFactory.createDefaultBuild().create(),
+        gson: Gson = GsonFactory.createFactory().build(),
         mediaType: MediaType = RetrofitClient.MEDIA_TYPE,
 ) : Converter.Factory() {
     private val gson: Gson?
@@ -101,7 +101,7 @@ class GsonConverterFactory private constructor(
     companion object {
         @JvmStatic
         fun create(mediaType: MediaType): GsonConverterFactory {
-            return create(GsonFactory.createDefaultBuild().create(), mediaType)
+            return create(GsonFactory.createFactory().build(), mediaType)
         }
         /**
          * Create an instance using `gson` for conversion. Encoding to JSON and
@@ -113,7 +113,7 @@ class GsonConverterFactory private constructor(
          */
         @JvmOverloads
         @JvmStatic
-        fun create(gson: Gson = GsonFactory.createDefaultBuild().create()): GsonConverterFactory {
+        fun create(gson: Gson = GsonFactory.createFactory().build()): GsonConverterFactory {
             return GsonConverterFactory(gson)
         }
 

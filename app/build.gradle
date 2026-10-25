@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
+    namespace "com.fz.network.demo"
     compileSdkVersion 31
     defaultConfig {
         applicationId "com.fz.network.demo"
@@ -40,7 +41,7 @@ dependencies {
     implementation "com.github.franmontiel:PersistentCookieJar:v1.0.0"
     implementation "com.squareup.okhttp3:logging-interceptor:4.9.0"
     implementation "com.squareup.okio:okio:3.2.0"
-    implementation 'com.github.peihua8858:GsonAdapter:1.0.1'
+    implementation 'com.github.peihua8858:GsonAdapter:1.0.8'
     implementation ("com.squareup.retrofit2:retrofit:2.9.0")
     implementation 'com.squareup.retrofit2:adapter-rxjava3:2.9.0'
     implementation 'androidx.databinding:databinding-runtime:4.2.2'

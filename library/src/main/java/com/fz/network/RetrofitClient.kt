@@ -1,7 +1,9 @@
 package com.fz.network
 
+import com.fz.common.map.isNonEmpty
 import com.fz.gson.GsonFactory
 import com.fz.network.remote.GsonConverterFactory.Companion.create
+import com.google.gson.Gson
 import okhttp3.CookieJar
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
@@ -187,11 +189,19 @@ class RetrofitClient private constructor(
         adapterFactory: CallAdapter.Factory?,
     ): Retrofit {
         val factory1 = factory ?: mFactory
-        ?: create(GsonFactory.createBuild(typeAdapters), mediaType ?: MEDIA_TYPE)
+        ?: create(createFactory(typeAdapters), mediaType ?: MEDIA_TYPE)
         val adapterFactory1 = adapterFactory ?: mAdapterFactory
         return createRetrofit(host, okHttpClient, factory1, adapterFactory1)
     }
-
+    private fun createFactory(typeAdapters: Map<Type, Any>?): Gson{
+        val factory =GsonFactory.createFactory()
+        if (typeAdapters.isNonEmpty()) {
+            for((type,obj) in typeAdapters.entries) {
+                factory.registerTypeAdapter(type,obj)
+            }
+        }
+        return factory.build()
+    }
     /**
      * 创建一个Retrofit
      *

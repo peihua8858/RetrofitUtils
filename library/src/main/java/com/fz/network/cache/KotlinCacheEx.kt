@@ -83,7 +83,7 @@ object KotlinCacheEx {
                     return content.toResponseBody().use {
                         ByteArrayInputStream(it.bytes()).use { bis ->
                             BufferedReader(InputStreamReader(bis)).use { reader ->
-                                val gson = GsonFactory.create()
+                                val gson = GsonFactory.createGson()
                                 val jsonReader = gson!!.newJsonReader(reader)
                                 val adapter: TypeAdapter<T> = gson.getAdapter(typeToken)
                                 adapter.read(jsonReader)
